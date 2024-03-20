@@ -387,39 +387,6 @@ fun LiveGameAliveWidget(
 }
 
 @Composable
-fun LiveGameShowHistory(
-    modifier: Modifier = Modifier,
-    showHistory: Boolean,
-    onShowHistoryChanged: (Boolean) -> Unit,
-) {
-    Card(
-        shape = RoundedCornerShape(8.dp),
-        backgroundColor = White,
-    ) {
-        Row(
-            modifier = modifier.padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Text(
-                text = "Показать историю",
-                style = MaterialTheme.typography.body1,
-            )
-            Switch(
-                checked = showHistory,
-                onCheckedChange = onShowHistoryChanged,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = BlackDark,
-                    checkedTrackColor = GreyLight,
-                    uncheckedThumbColor = WhiteLight,
-                    uncheckedTrackColor = White,
-                )
-            )
-        }
-    }
-}
-
-@Composable
 fun WinnerAcceptWidget(
     modifier: Modifier = Modifier,
     winner: GameFinishResult

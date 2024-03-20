@@ -22,7 +22,7 @@ data class LiveGameState(
             }
         }
 
-    val totalVotes: Int get() = players.map { it.isAlive && !it.isClient }.size
+    val totalVotes: Int get() = players.filter { it.isAlive && !it.isClient }.size
 
     val deleteCandidates: List<Int>
         get() = players.filter { it.isAlive && it.fouls == 4 }.map { it.number }
