@@ -49,36 +49,30 @@ fun LiveSpeechPlayerTimerWidget(
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             if (title.isNotEmpty()) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.h6,
+                    style = MaterialTheme.typography.body1,
                     color = BlackDark
                 )
             }
+            Text(
+                text = "Игрок $playerNumber",
+                style = MaterialTheme.typography.body1,
+                color = BlackDark
+            )
+            Text(
+                text = "Время: " + timer.toString() + "s",
+                style = MaterialTheme.typography.body1,
+                color = timerColor,
+            )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Column(
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.Start,
-                    modifier = Modifier.padding(end = 16.dp),
-                ) {
-                    Text(
-                        text = "Игрок $playerNumber",
-                        style = MaterialTheme.typography.body1,
-                        color = BlackDark
-                    )
-                    Text(
-                        text = "Время: " + timer.toString() + "s",
-                        style = MaterialTheme.typography.body1,
-                        color = timerColor,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
                 Button(
                     modifier = Modifier.size(50.dp),
                     onClick = { timer = seconds },

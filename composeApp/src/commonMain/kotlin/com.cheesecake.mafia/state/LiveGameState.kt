@@ -9,9 +9,20 @@ data class LiveGameState(
     val voteCandidates: List<Int> = emptyList(),
     val nightActions: Map<GameActionType.NightActon, Int> = emptyMap(),
 ) {
+    val winner: GameFinishResult?
+        get() {
+            val whiteCount = players.filter { it.role is GamePlayerRole.White && it.isAlive }.size
+            val redCount = players.filter { it.role is GamePlayerRole.Red && it.isAlive }.size
+            val blackCount = players.filter { it.role is GamePlayerRole.Black && it.isAlive }.size
+            return when {
+                whiteCount == 0 && blackCount == 0 && redCount > 0 -> GameFinishResult.RedWin
+                whiteCount >= redCount + blackCount -> GameFinishResult.WhiteWin
+                blackCount >= redCount + whiteCount -> GameFinishResult.BlackWin
+                else -> null
+            }
+        }
 
-    val totalVotes: Int
-        get() = players.map { it.isAlive && !it.isClient }.size
+    val totalVotes: Int get() = players.map { it.isAlive && !it.isClient }.size
 
     val deleteCandidates: List<Int>
         get() = players.filter { it.isAlive && it.fouls == 4 }.map { it.number }

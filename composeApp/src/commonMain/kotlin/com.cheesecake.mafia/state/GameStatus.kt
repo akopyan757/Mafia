@@ -5,3 +5,9 @@ enum class GameStatus {
     Live,
     Finished,
 }
+
+enum class GameFinishResult {
+    WhiteWin,
+    RedWin,
+    BlackWin,
+}

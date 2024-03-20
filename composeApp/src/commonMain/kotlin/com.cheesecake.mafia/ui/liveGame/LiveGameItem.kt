@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
@@ -12,8 +13,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.Checkbox
 import androidx.compose.material.CheckboxDefaults
@@ -47,6 +51,8 @@ import com.cheesecake.mafia.state.primaryColor
 import com.cheesecake.mafia.state.secondaryColor
 import com.cheesecake.mafia.ui.VerticalDivider
 import com.cheesecake.mafia.ui.activeStageColumnMinWidth
+import com.cheesecake.mafia.ui.dayStageColumnMinWidth
+import com.cheesecake.mafia.ui.dayStageColumnWeight
 import com.cheesecake.mafia.ui.foulsColumnSize
 import com.cheesecake.mafia.ui.nameColumnWidth
 import com.cheesecake.mafia.ui.nightStageColumnMinWidth
@@ -74,7 +80,7 @@ fun LiveGameItem(
     }
 
     Row(
-        modifier = modifier.fillMaxWidth().background(White).height(50.dp),
+        modifier = modifier.fillMaxWidth().background(White).height(40.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
@@ -141,10 +147,12 @@ fun LiveGameItem(
                 val gameActions = player.actions
                     .filter { it.actionType.dayType() == stageDayType && it.dayIndex == dayIndex }
                     .map { gameAction -> gameAction.actionType }
-                val historyItemModifier = Modifier.weight(nightStageColumnWeight)
-                    .defaultMinSize(minWidth = nightStageColumnMinWidth)
-
-                VerticalDivider(color = White, modifier = Modifier.align(Alignment.CenterVertically))
+                val historyItemModifier = if (stageDayType == StageDayType.Day) {
+                    Modifier.weight(dayStageColumnWeight).defaultMinSize(minWidth = dayStageColumnMinWidth)
+                } else {
+                    Modifier.weight(nightStageColumnWeight).defaultMinSize(minWidth = nightStageColumnMinWidth)
+                }
+                VerticalDivider(color = WhiteLight, modifier = Modifier.align(Alignment.CenterVertically))
                 HistoryItem(
                     modifier = historyItemModifier,
                     actions = gameActions,
@@ -152,31 +160,36 @@ fun LiveGameItem(
             }
         }
         actionsHistory.lastOrNull()?.let { (stageDayType, _) ->
-            val actionItemModifier = Modifier.width(activeStageColumnMinWidth)
+            VerticalDivider(color = WhiteLight, modifier = Modifier.align(Alignment.CenterVertically))
+            val itemModifier = if (stageDayType == StageDayType.Day) {
+                Modifier.defaultMinSize(minWidth = dayStageColumnMinWidth).weight(dayStageColumnWeight)
+            } else {
+                Modifier.width(activeStageColumnMinWidth)
+            }
             if (player.isAlive) {
                 if (stageDayType == StageDayType.Day) {
                     if (!player.isClient) {
                         DayActionItem(
-                            modifier = actionItemModifier,
+                            modifier = itemModifier,
                             isPutOnVote = isPutOnVote,
                             onPutOnVote = onPutOnVote,
                             canAddCandidate = stage.canAddCandidate()
                         )
                     } else {
                         HistoryItem(
-                            modifier = actionItemModifier,
+                            modifier = itemModifier,
                             actions = listOf(GameActionType.NightActon.ClientChoose),
                         )
                     }
                 } else {
                     NightActionItem(
-                        modifier = actionItemModifier,
+                        modifier = itemModifier,
                         checkedActions = checkedActions,
                         onActionCheckedChanged = onActionCheckedChanged,
                     )
                 }
             } else {
-                Box(modifier = Modifier.fillMaxWidth())
+                Box(modifier = itemModifier)
             }
         }
     }
@@ -209,17 +222,14 @@ fun DayActionItem(
     Box(modifier) {
         if (canAddCandidate) {
             val color = if (isPutOnVote) Color.Gray else BlackDark
-            Card(
-                backgroundColor = color,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .wrapContentSize()
-                    .run {
-                        if (!isPutOnVote) clickable { onPutOnVote() } else this
-                    },
+            Button(
+                onClick = { onPutOnVote() },
+                colors = ButtonDefaults.buttonColors(color),
+                enabled = !isPutOnVote,
+                contentPadding = PaddingValues(4.dp),
+                modifier = Modifier.align(Alignment.Center).size(32.dp)
             ) {
                 Icon(
-                    modifier = Modifier.size(32.dp).padding(vertical = 4.dp, horizontal = 8.dp),
                     painter = imageResources("ic_like_button.xml"),
                     contentDescription = null,
                     tint = White,
@@ -282,8 +292,7 @@ fun LiveGameRole(
     role: GamePlayerRole = GamePlayerRole.None,
 ) {
     Row(
-        modifier = modifier.background(role.primaryColor())
-            .padding(vertical = 2.dp, horizontal = 4.dp),
+        modifier = modifier.background(role.primaryColor()).padding(horizontal = 4.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {

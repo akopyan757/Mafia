@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,11 +13,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -48,9 +49,10 @@ import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.components.liveGame.LiveGameComponent
 import com.cheesecake.mafia.state.GameActionType
-import com.cheesecake.mafia.state.LivePlayerState
+import com.cheesecake.mafia.state.GameFinishResult
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
+import com.cheesecake.mafia.state.LivePlayerState
 import com.cheesecake.mafia.state.LiveStage
 import com.cheesecake.mafia.ui.GameStanding
 import com.cheesecake.mafia.ui.candidateSpeechTimeSeconds
@@ -87,7 +89,6 @@ fun LiveGameScreen(
     val redoStack by viewModel.redoStack.collectAsState()
     val gameActive by viewModel.gameActive.collectAsState()
     var showRoles by remember { mutableStateOf(true) }
-    var showHistory by remember { mutableStateOf(true) }
     var showOnlyAlive by remember { mutableStateOf(false) }
     var actionSelections by remember { mutableStateOf(mapOf<GameActionType.NightActon, Int>()) }
 
@@ -117,19 +118,6 @@ fun LiveGameScreen(
                     modifier = Modifier.wrapContentSize().defaultMinSize(minHeight = 200.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start),
                 ) {
-                    LiveGameTimer(
-                        modifier = Modifier.width(150.dp),
-                        active = gameActive,
-                        onPauseGame = viewModel::pauseGame,
-                        onStopGame = {
-                            viewModel.stopGame(it)
-                            onFinishGame()
-                        },
-                        redoActive = redoStack.size > 0,
-                        undoActive = undoStack.size > 0,
-                        onUndo = { viewModel.undoState() },
-                        onRedo = { viewModel.redoState() }
-                    )
                     SpeechStateWidget(
                         modifier = Modifier,
                         stageAction = state.stage,
@@ -146,7 +134,7 @@ fun LiveGameScreen(
                             onRepeatSpeech = { viewModel.reVotePlayers(it) },
                         )
                     }
-                    if (state.stage is LiveStage.Night || state.stage is LiveStage.Day.LastDeathSpeech) {
+                    if (state.stage is LiveStage.Night) {
                         LiveNightWidget(
                             allActions = viewModel.getNightGameActions(),
                             killedPlayers = state.lastKilledPlayers,
@@ -155,7 +143,7 @@ fun LiveGameScreen(
                         )
                     }
                     Column(
-                        modifier = Modifier.width(280.dp).padding(end = 8.dp),
+                        modifier = Modifier.width(280.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         LiveGameRolesWidget(
@@ -168,17 +156,15 @@ fun LiveGameScreen(
                             showOnlyAlive = showOnlyAlive,
                             onShowOnlyAliveChanged = { showOnlyAlive = it },
                         )
-                        LiveGameShowHistory(
-                            modifier = Modifier.fillMaxWidth(),
-                            showHistory = showHistory,
-                            onShowHistoryChanged = { showHistory = it },
-                        )
-
+                    }
+                    val winner = state.winner
+                    if (winner != null) {
+                        WinnerAcceptWidget(winner = winner)
                     }
                     val deletePlayersCandidates = state.deleteCandidates
                     if (deletePlayersCandidates.isNotEmpty()) {
                         LiveDeletePlayerWidget(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.wrapContentWidth(),
                             playerNumbers = deletePlayersCandidates,
                             isDayStage = state.stage is LiveStage.Day,
                             onAccept = { viewModel.acceptDeletePlayers(it) },
@@ -186,10 +172,26 @@ fun LiveGameScreen(
                     }
                 }
             }
-            if (showHistory) {
+             Column(
+                modifier = Modifier.width(250.dp).fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                LiveGameTimer(
+                    modifier = Modifier.fillMaxWidth(),
+                    active = gameActive,
+                    onPauseGame = viewModel::pauseGame,
+                    onStopGame = {
+                        viewModel.stopGame(it)
+                        onFinishGame()
+                    },
+                    redoActive = redoStack.size > 0,
+                    undoActive = undoStack.size > 0,
+                    onUndo = { viewModel.undoState() },
+                    onRedo = { viewModel.redoState() }
+                )
                 Card(
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.width(250.dp).fillMaxHeight(),
+                    modifier = Modifier.weight(1f),
                     backgroundColor = White,
                 ) {
                     LazyColumn(
@@ -413,6 +415,46 @@ fun LiveGameShowHistory(
                     uncheckedTrackColor = White,
                 )
             )
+        }
+    }
+}
+
+@Composable
+fun WinnerAcceptWidget(
+    modifier: Modifier = Modifier,
+    winner: GameFinishResult
+) {
+    val text = when (winner) {
+        GameFinishResult.BlackWin -> "Победа мафии"
+        GameFinishResult.RedWin -> "Победа мирного города"
+        GameFinishResult.WhiteWin -> "Победа маньяка"
+    }
+    Card(
+        modifier = modifier.width(200.dp),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.body1,
+                color = BlackDark,
+                textAlign = TextAlign.Center,
+            )
+            Button(
+                colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                modifier = Modifier.fillMaxWidth(),
+                onClick = {}
+            ) {
+                Text(
+                    text = "Подтвердить",
+                    style = MaterialTheme.typography.body1,
+                    color = White,
+                )
+            }
         }
     }
 }

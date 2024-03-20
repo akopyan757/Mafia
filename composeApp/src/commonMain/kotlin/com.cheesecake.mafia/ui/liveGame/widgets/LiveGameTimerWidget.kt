@@ -2,6 +2,7 @@ package com.cheesecake.mafia.ui.liveGame.widgets
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
@@ -45,59 +46,63 @@ fun LiveGameTimer(
 
     Card(modifier) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
             Text(
                 text = "${hours}:${minutes}:${seconds}",
                 style = MaterialTheme.typography.h6,
             )
-            Button(
-                onClick = onPauseGame,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
-            ) {
-                Text(
-                    text = "Пауза",
-                    style = MaterialTheme.typography.body1,
-                    color = White,
-                )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = onPauseGame,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                ) {
+                    Text(
+                        text = "Пауза",
+                        style = MaterialTheme.typography.body1,
+                        color = White,
+                    )
+                }
+                Button(
+                    onClick = { onStopGame(timer) },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                ) {
+                    Text(
+                        text = "Стоп",
+                        style = MaterialTheme.typography.body1,
+                        color = White,
+                    )
+                }
             }
-            Button(
-                onClick = { onStopGame(timer) },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
-            ) {
-                Text(
-                    text = "Стоп",
-                    style = MaterialTheme.typography.body1,
-                    color = White,
-                )
-            }
-            Button(
-                onClick = { onUndo() },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = undoActive,
-                colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
-            ) {
-                Text(
-                    text = "Undo",
-                    style = MaterialTheme.typography.body1,
-                    color = White,
-                )
-            }
-            Button(
-                onClick = { onRedo() },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = redoActive,
-                colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
-            ) {
-                Text(
-                    text = "Redo",
-                    style = MaterialTheme.typography.body1,
-                    color = White,
-                )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = { onUndo() },
+                    modifier = Modifier.weight(1f),
+                    enabled = undoActive,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                ) {
+                    Text(
+                        text = "Undo",
+                        style = MaterialTheme.typography.body1,
+                        color = White,
+                    )
+                }
+                Button(
+                    onClick = { onRedo() },
+                    modifier = Modifier.weight(1f),
+                    enabled = redoActive,
+                    colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                ) {
+                    Text(
+                        text = "Redo",
+                        style = MaterialTheme.typography.body1,
+                        color = White,
+                    )
+                }
             }
         }
     }

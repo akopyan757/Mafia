@@ -30,11 +30,12 @@ fun NewGameRolesWidget(
 ) {
     LazyRow(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         items(rolesCounts) { (role, count) ->
             Card(
-                modifier = Modifier.width(60.dp).fillMaxHeight(),
+                modifier = Modifier.width(50.dp).size(70.dp),
                 shape = RoundedCornerShape(16.dp),
                 backgroundColor = role.primaryColor(),
             ) {

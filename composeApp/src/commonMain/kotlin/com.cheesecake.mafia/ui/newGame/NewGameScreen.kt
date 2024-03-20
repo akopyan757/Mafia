@@ -8,13 +8,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
@@ -56,6 +59,50 @@ fun NewGameStanding(
     val state by viewModel.state.collectAsState()
 
     Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            NewGamePlayerCount(
+                modifier = Modifier.wrapContentHeight(),
+                startValue = 10,
+                onValueChanged = { viewModel.onPlayerCountsChanged(it) }
+            )
+            NewGameRolesWidget(
+                modifier = Modifier.wrapContentHeight(),
+                rolesCounts = state.rolesCount,
+            )
+            Column(
+                modifier = Modifier.width(100.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                    onClick = { onBackPressed() },
+                    enabled = state.isItemsFilled,
+                ) {
+                    Text(
+                        text = "Назад",
+                        style = MaterialTheme.typography.body1,
+                        color = White,
+                    )
+                }
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                    onClick = { onStartGameClicked(state.items) },
+                    enabled = state.isItemsFilled,
+                ) {
+                    Text(
+                        text = "Начать",
+                        style = MaterialTheme.typography.body1,
+                        color = White,
+                    )
+                }
+            }
+        }
         NewGameStanding(
             modifier = Modifier.wrapContentSize().padding(top = 8.dp),
             items = state.items,
@@ -65,40 +112,6 @@ fun NewGameStanding(
             onPlayerChoose = { number, player -> viewModel.onPlayerChosen(number, player) },
             onNewPlayerChosen = { number, name -> viewModel.onNewPlayerNameChanged(number, name) },
         )
-        Row(
-            modifier = Modifier.fillMaxWidth().height(70.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            NewGamePlayerCount(
-                modifier = Modifier.fillMaxHeight(),
-                startValue = 10,
-                onValueChanged = { viewModel.onPlayerCountsChanged(it) }
-            )
-            NewGameRolesWidget(
-                modifier = Modifier.weight(1f).fillMaxHeight(),
-                rolesCounts = state.rolesCount,
-            )
-            Button(
-                onClick = { onBackPressed() },
-                enabled = state.isItemsFilled,
-            ) {
-                Text(
-                    "Назад",
-                    style = MaterialTheme.typography.body1,
-                    color = White,
-                )
-            }
-            Button(
-                onClick = { onStartGameClicked(state.items) },
-                enabled = state.isItemsFilled,
-            ) {
-                Text(
-                    "Начать",
-                    style = MaterialTheme.typography.body1,
-                    color = White,
-                )
-            }
-        }
     }
 }
 
