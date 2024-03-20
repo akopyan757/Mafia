@@ -2,146 +2,141 @@ package com.cheesecake.mafia.viewModel
 
 import com.cheesecake.mafia.state.GameAction
 import com.cheesecake.mafia.state.GameActionType
+import com.cheesecake.mafia.state.HistoryItem
+import com.cheesecake.mafia.state.LiveGameState
 import com.cheesecake.mafia.state.LivePlayerState
-import com.cheesecake.mafia.state.GamePlayerRole
-import com.cheesecake.mafia.state.NewGamePlayerItem
 import com.cheesecake.mafia.state.LiveStage
+import com.cheesecake.mafia.state.NewGamePlayerItem
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-
-data class LiveGameState(
-    val gameActive: Boolean = false,
-    val showRoles: Boolean = true,
-    val players: List<LivePlayerState> = emptyList(),
-    val round: Int = 0,
-    val stage: LiveStage = LiveStage.Start,
-    val queueStage: ArrayDeque<LiveStage> = ArrayDeque(40),
-    val voteCandidates: List<Int> = emptyList(),
-    val nightActions: Map<GameActionType.NightActon, Int> = emptyMap(),
-) {
-    val totalVotes: Int
-        get() = players.map { it.isAlive && !it.isClient }.size
-
-    val deleteCandidates: List<Int>
-        get() = players.filter { it.isAlive && it.fouls == 4 }.map { it.number }
-
-    val lastClientPlayer: Int?
-        get() {
-            val clientChosen = nightActions[GameActionType.NightActon.ClientChoose]
-            return clientChosen?.takeIf { clientChosen !in lastKilledPlayers }
-        }
-
-    val lastKilledPlayers: List<Int>
-        get() {
-            val roles = players.associateBy(keySelector = { it.role }) { it.number }
-            val mafiaKilling = nightActions[GameActionType.NightActon.MafiaKilling]
-            val maniacKilling = nightActions[GameActionType.NightActon.ManiacKilling]
-            val clientChosen = nightActions[GameActionType.NightActon.ClientChoose]
-            val doctorSaving = nightActions[GameActionType.NightActon.Doctor]
-            return if (
-                roles[GamePlayerRole.Red.Whore] == mafiaKilling ||
-                roles[GamePlayerRole.Red.Whore] == maniacKilling
-            ) {
-                listOfNotNull(mafiaKilling, maniacKilling, clientChosen)
-                    .filterNot { number -> doctorSaving == number }
-            } else {
-                listOfNotNull(mafiaKilling, maniacKilling)
-                    .filterNot { number -> doctorSaving == number || clientChosen == number }
-            }
-        }
-}
 
 class LiveGameStandingViewModel(
     players: List<NewGamePlayerItem>,
 ): ViewModel() {
 
+    companion object {
+        const val HISTORY_SIZE = 5
+    }
+
     private val _state = MutableStateFlow(LiveGameState())
+    private val _history = MutableStateFlow<List<HistoryItem>>(emptyList())
+    private val _undoStack = MutableStateFlow(ArrayDeque<LiveGameState>(HISTORY_SIZE))
+    private val _redoStack = MutableStateFlow(ArrayDeque<LiveGameState>(HISTORY_SIZE))
+    private val _gameActive = MutableStateFlow(false)
 
     val state: StateFlow<LiveGameState> get() = _state
+    val history: StateFlow<List<HistoryItem>> get() = _history
+    val undoStack: StateFlow<ArrayDeque<LiveGameState>> get() = _undoStack
+    val redoStack: StateFlow<ArrayDeque<LiveGameState>> get() = _redoStack
+    val gameActive: StateFlow<Boolean> get() = _gameActive
 
     init {
         val startPlayers = players.map { item ->
             LivePlayerState(item.player.id, item.number, item.player.name, item.role)
         }
         val alivePlayers = startPlayers.filter { it.isAlive }
-        val startQueue = _state.value.queueStage.let { queue ->
-            queue.addAll(alivePlayers.map { LiveStage.Day.Speech(it.number) })
-            queue.add(LiveStage.Day.Vote())
-            queue
-        }
-        changeState { state ->
+        val startQueue = _state.value.queueStage
+            .push(alivePlayers.map { LiveStage.Day.Speech(it.number) })
+            .push(LiveStage.Day.Vote())
+        addHistoryItem(HistoryItem.Start(getStateId()))
+        changeStateAndNext(historyCached = false) { state ->
             state.copy(
                 players = startPlayers, queueStage = startQueue,
             )
         }
+    }
 
-        nextStage()
+    fun undoState() {
+        val undoHistory = _undoStack.value
+        val state = undoHistory.removeLastOrNull() ?: return
+        val redoHistory = _redoStack.value
+        _history.value = _history.value.filterNot { it.id() == getStateId() }
+        _state.value = state
+        redoHistory.addLast(state)
+        _redoStack.value = redoHistory
+    }
+
+    fun redoState() {
+        val redoHistory = _redoStack.value
+        val state = redoHistory.removeLastOrNull() ?: return
+        val undoHistory = _undoStack.value
+        _state.value = state.copy(id = state.id + 1)
+        undoHistory.addLast(state)
+        _undoStack.value = undoHistory
     }
 
     fun startOrResumeGame() {
-        changeState { state -> state.copy(gameActive = true) }
+        _gameActive.value = true
     }
 
     fun pauseGame() {
-        changeState { state -> state.copy(gameActive = false) }
+        _gameActive.value = false
     }
 
     fun stopGame(time: Int) {
-        changeState { state -> state.copy(gameActive = false) }
+        _gameActive.value = false
     }
 
-    fun changeShowRolesState(showRoles: Boolean) {
-        changeState { state -> state.copy(showRoles = showRoles) }
-    }
-
-    fun nextStage() {
-        changeState { state ->
-            val queue = state.queueStage
-            val currentStage = queue.removeFirstOrNull() ?: return@changeState state
-            if (currentStage is LiveStage.Day.Vote) {
-                if (state.voteCandidates.isEmpty()) {
-                    state.copy(queueStage = queue, stage = LiveStage.Night())
+    fun changeStateAndNext(
+        historyCached: Boolean = false,
+        transform: ((LiveGameState) -> LiveGameState)? = null
+    ) {
+        changeState(cached = historyCached) { oldState ->
+            val state = transform?.let { it(oldState) } ?: oldState
+            val (queue, currentStage) = state.queueStage.popFirst()
+            currentStage?.let {
+                return@let if (currentStage is LiveStage.Day.Vote) {
+                    if (state.voteCandidates.isEmpty()) {
+                        state.copy(queueStage = queue, stage = LiveStage.Night())
+                    } else {
+                        state.copy(queueStage = queue, stage = currentStage.copy(candidates = state.voteCandidates))
+                    }
+                } else if (currentStage is LiveStage.Night) {
+                    state.copy(
+                        round = state.round + 1,
+                        stage = currentStage,
+                        queueStage = queue,
+                        players = state.players.map { player -> player.copy(isClient = false) },
+                        voteCandidates = emptyList(),
+                    )
                 } else {
                     state.copy(queueStage = queue, stage = currentStage)
                 }
-            } else if (currentStage is LiveStage.Night) {
-                state.copy(
-                    round = state.round + 1,
-                    stage = currentStage,
-                    players = state.players.map { player -> player.copy(isClient = false) },
-                    voteCandidates = emptyList(),
-                )
-            } else {
-                state.copy(queueStage = queue, stage = currentStage)
+            } ?: run {
+                state.copy(queueStage = queue)
             }
         }
     }
 
     fun addVotedCandidate(playerNumber: Int) {
-        changeState { state ->
+        changeState(cached = true) { state ->
             state.copy(voteCandidates = state.voteCandidates + listOf(playerNumber))
+        }
+        val stage = _state.value.stage
+        if (stage is LiveStage.Day.Speech) {
+            addHistoryItem(HistoryItem.Nomination(stage.playerNumber, playerNumber, getStateId()))
         }
     }
 
     fun reVotePlayers(votedPlayers: List<Int>) {
-        changeState { state ->
+        changeStateAndNext(historyCached = true) { state ->
             val queue = state.queueStage
-            queue.addAll(votedPlayers.map { LiveStage.Day.Speech(it, candidateForElimination = true) })
-            queue.add(LiveStage.Day.Vote(reVote = true))
+                .push(votedPlayers.map { LiveStage.Day.Speech(it, candidateForElimination = true) })
+                .push(LiveStage.Day.Vote(reVote = true))
             state.copy(
                 voteCandidates = votedPlayers,
                 queueStage = queue,
             )
         }
-        nextStage()
+        addHistoryItem(HistoryItem.ReVote(votedPlayers, getStateId()))
     }
 
     fun votePlayers(votedPlayers: List<Int>) {
-        changeState { state ->
+        changeStateAndNext(historyCached = true)  { state ->
             val queue = state.queueStage
-            queue.addAll(votedPlayers.map { LiveStage.Day.LastVotedSpeech(it) })
-            queue.add(LiveStage.Night())
+                .push(votedPlayers.map { LiveStage.Day.LastVotedSpeech(it) })
+                .push(LiveStage.Night())
             state.copy(
                 queueStage = queue,
                 players = state.players.changeItems(votedPlayers) { player ->
@@ -154,7 +149,7 @@ class LiveGameStandingViewModel(
                 }
             )
         }
-        nextStage()
+        addHistoryItem(HistoryItem.Elimination(votedPlayers, getStateId()))
     }
 
     fun getNightGameActions(onlyActive: Boolean = false): List<GameActionType.NightActon> {
@@ -167,34 +162,41 @@ class LiveGameStandingViewModel(
     }
 
     fun acceptNightActions() {
-        changeState { state ->
+        val nightActions = _state.value.nightActions
+        changeStateAndNext(historyCached = true) { state ->
             val speechPlayers = state.players.filter { it.isAlive && !it.isClient }
             val queue = state.queueStage
-            queue.addAll(state.lastKilledPlayers.map { LiveStage.Day.LastDeathSpeech(it) })
-            queue.addAll(speechPlayers.map { LiveStage.Day.Speech(it.number) })
-            queue.add(LiveStage.Day.Vote())
+                .push(state.lastKilledPlayers.map { LiveStage.Day.LastDeathSpeech(it) })
+                .push(speechPlayers.map { LiveStage.Day.Speech(it.number) })
+                .push(LiveStage.Day.Vote())
             state.copy(queueStage = queue).copyWithAcceptanceNightActions()
         }
-        nextStage()
+        addHistoryItems(
+            nightActions.map { (action, playerNumber) ->
+                HistoryItem.NightAction(action, playerNumber, getStateId())
+            }
+        )
     }
 
     fun changeFoulsCount(playerNumber: Int, fouls: Int) {
-        changeState { state ->
+        changeState(cached = true) { state ->
             state.copy(players = state.players.changeItem(playerNumber) { it.copy(fouls = fouls) })
+        }
+        if (fouls < 4) {
+            addHistoryItem(HistoryItem.Fouls(playerNumber, fouls, getStateId()))
         }
     }
 
     fun acceptDeletePlayers(skipToNight: Boolean) {
         val numbers = state.value.deleteCandidates
         if (numbers.isEmpty()) return
-        val queue = state.value.queueStage
-        if (skipToNight) {
-            queue.clear()
-            queue.add(LiveStage.Night())
-        }
-        changeState { state ->
+        val transform: (LiveGameState) -> LiveGameState = { state ->
             state.copy(
-                queueStage = queue,
+                queueStage = if (skipToNight) {
+                    listOf(LiveStage.Night())
+                } else {
+                    state.queueStage
+                },
                 players = state.players.changeItems(numbers) { player ->
                     player.copy(
                         isAlive = false,
@@ -209,8 +211,35 @@ class LiveGameStandingViewModel(
             )
         }
         if (skipToNight) {
-            nextStage()
+            changeStateAndNext(historyCached = true, transform = transform)
+        } else {
+            changeState(cached = true, transform = transform)
         }
+        addHistoryItems(
+            numbers.map { playerNumber ->
+                HistoryItem.DeletePlayer(playerNumber, _state.value.stage.type, getStateId())
+            }
+        )
+    }
+
+    private fun List<LiveStage>.push(items: List<LiveStage>): List<LiveStage> {
+        return this + items
+    }
+
+    private fun List<LiveStage>.push(item: LiveStage): List<LiveStage> {
+        return this + listOf(item)
+    }
+
+    private fun List<LiveStage>.popFirst(): Pair<List<LiveStage>, LiveStage?> {
+        val items = this.toMutableList()
+        val last = items.removeFirstOrNull() ?: return emptyList<LiveStage>() to null
+        return items.toList() to last
+    }
+
+    private fun List<LiveStage>.pop(): Pair<List<LiveStage>, LiveStage?> {
+        val items = this.toMutableList()
+        val last = items.removeLastOrNull() ?: return emptyList<LiveStage>() to null
+        return items.toList() to last
     }
 
     private fun LiveGameState.copyWithAcceptanceNightActions(): LiveGameState {
@@ -232,7 +261,38 @@ class LiveGameStandingViewModel(
         )
     }
 
-    private fun changeState(transform: (LiveGameState) -> LiveGameState) {
-        _state.value = transform(_state.value)
+    private fun addHistoryItem(historyItem: HistoryItem) {
+        _history.value += historyItem
+    }
+
+    private fun addHistoryItems(historyItems: List<HistoryItem>) {
+        _history.value += historyItems
+    }
+
+    private fun changeState(
+        cached: Boolean = false,
+        transform: (LiveGameState) -> LiveGameState
+    ) {
+        val oldState = _state.value
+        _state.value = transform(oldState).incStateId()
+        if (cached) {
+            val undoHistory = _undoStack.value
+            if (undoHistory.size >= HISTORY_SIZE) {
+                undoHistory.removeFirstOrNull()
+            }
+            undoHistory.addLast(oldState)
+            _undoStack.value = undoHistory
+            val redoHistory = _redoStack.value
+            redoHistory.clear()
+            _redoStack.value = redoHistory
+        }
+    }
+
+    private fun LiveGameState.incStateId(): LiveGameState {
+        return copy(id = id + 1)
+    }
+
+    private fun getStateId(): Int {
+        return _state.value.id
     }
 }

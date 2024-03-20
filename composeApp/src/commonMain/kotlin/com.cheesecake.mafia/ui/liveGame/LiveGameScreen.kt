@@ -6,14 +6,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
@@ -33,7 +37,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.GreyLight
@@ -76,98 +82,138 @@ fun LiveGameScreen(
     onFinishGame: () -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
+    val history by viewModel.history.collectAsState()
+    val undoStack by viewModel.undoStack.collectAsState()
+    val redoStack by viewModel.redoStack.collectAsState()
+    val gameActive by viewModel.gameActive.collectAsState()
+    var showRoles by remember { mutableStateOf(true) }
+    var showHistory by remember { mutableStateOf(true) }
     var showOnlyAlive by remember { mutableStateOf(false) }
     var actionSelections by remember { mutableStateOf(mapOf<GameActionType.NightActon, Int>()) }
 
     Box(Modifier.fillMaxSize()) {
-        Column(
-            Modifier.fillMaxSize().padding(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            LiveGameStanding(
-                modifier = Modifier.wrapContentWidth(),
-                items = state.players,
-                showRoles = state.showRoles,
-                showOnlyAlive = showOnlyAlive,
-                round = state.round,
-                stage = state.stage,
-                voteCandidates = state.voteCandidates,
-                onPutOnVote = { number -> viewModel.addVotedCandidate(number) },
-                onFoulsChanged = { number, fouls -> viewModel.changeFoulsCount(number, fouls) },
-                nightActions = viewModel.getNightGameActions(onlyActive = true),
-                onChangeAction = {
-                    actionSelections = it
-                    viewModel.changeNightAction(actionSelections)
-                }
-            )
-            Row(
-                modifier = Modifier.wrapContentSize().defaultMinSize(minHeight = 200.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start),
+        Row(modifier = Modifier.padding(8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                LiveGameTimer(
-                    modifier = Modifier.width(150.dp),
-                    active = state.gameActive,
-                    onPauseGame = viewModel::pauseGame,
-                    onStopGame = {
-                        viewModel.stopGame(it)
-                        onFinishGame()
-                    },
+                LiveGameStanding(
+                    modifier = Modifier,
+                    items = state.players,
+                    showRoles = showRoles,
+                    showOnlyAlive = showOnlyAlive,
+                    round = state.round,
+                    stage = state.stage,
+                    voteCandidates = state.voteCandidates,
+                    onPutOnVote = { number -> viewModel.addVotedCandidate(number) },
+                    onFoulsChanged = { number, fouls -> viewModel.changeFoulsCount(number, fouls) },
+                    nightActions = viewModel.getNightGameActions(onlyActive = true),
+                    onChangeAction = {
+                        actionSelections = it
+                        viewModel.changeNightAction(actionSelections)
+                    }
                 )
-                SpeechStateWidget(
-                    stageAction = state.stage,
-                    gameActive = state.gameActive,
-                    candidates = state.voteCandidates,
-                    onFinish = { viewModel.nextStage() },
-                )
-                if (state.stage is LiveStage.Day.Vote) {
-                    LiveVoteWidget(
-                        state = state.stage as LiveStage.Day.Vote,
-                        totalVotes = state.totalVotes,
-                        candidates = state.voteCandidates,
-                        onFinish = { viewModel.votePlayers(it) },
-                        onRepeatSpeech = { viewModel.reVotePlayers(it) },
-                    )
-                }
-                if (state.stage is LiveStage.Night || state.stage is LiveStage.Day.LastDeathSpeech) {
-                    LiveNightWidget(
-                        allActions = viewModel.getNightGameActions(),
-                        killedPlayers = state.lastKilledPlayers,
-                        clientChosen = state.lastClientPlayer,
-                        onFinish = { viewModel.acceptNightActions() },
-                    )
-                }
-                Column(
-                    modifier = Modifier.width(280.dp).padding(end = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                Row(
+                    modifier = Modifier.wrapContentSize().defaultMinSize(minHeight = 200.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start),
                 ) {
-                    LiveGameRolesWidget(
-                        modifier = Modifier.fillMaxWidth(),
-                        showRoles = state.showRoles,
-                        onShowRolesChanged = { showRoles -> viewModel.changeShowRolesState(showRoles) },
+                    LiveGameTimer(
+                        modifier = Modifier.width(150.dp),
+                        active = gameActive,
+                        onPauseGame = viewModel::pauseGame,
+                        onStopGame = {
+                            viewModel.stopGame(it)
+                            onFinishGame()
+                        },
+                        redoActive = redoStack.size > 0,
+                        undoActive = undoStack.size > 0,
+                        onUndo = { viewModel.undoState() },
+                        onRedo = { viewModel.redoState() }
                     )
-                    LiveGameAliveWidget(
-                        modifier = Modifier.fillMaxWidth(),
-                        showOnlyAlive = showOnlyAlive,
-                        onShowOnlyAliveChanged = { showOnlyAlive = it },
+                    SpeechStateWidget(
+                        modifier = Modifier,
+                        stageAction = state.stage,
+                        gameActive = gameActive,
+                        candidates = state.voteCandidates,
+                        onFinish = { viewModel.changeStateAndNext(historyCached = true) },
                     )
+                    if (state.stage is LiveStage.Day.Vote) {
+                        LiveVoteWidget(
+                            state = state.stage as LiveStage.Day.Vote,
+                            totalVotes = state.totalVotes,
+                            candidates = state.voteCandidates,
+                            onFinish = { viewModel.votePlayers(it) },
+                            onRepeatSpeech = { viewModel.reVotePlayers(it) },
+                        )
+                    }
+                    if (state.stage is LiveStage.Night || state.stage is LiveStage.Day.LastDeathSpeech) {
+                        LiveNightWidget(
+                            allActions = viewModel.getNightGameActions(),
+                            killedPlayers = state.lastKilledPlayers,
+                            clientChosen = state.lastClientPlayer,
+                            onFinish = { viewModel.acceptNightActions() },
+                        )
+                    }
+                    Column(
+                        modifier = Modifier.width(280.dp).padding(end = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        LiveGameRolesWidget(
+                            modifier = Modifier.fillMaxWidth(),
+                            showRoles = showRoles,
+                            onShowRolesChanged = { showRoles = it },
+                        )
+                        LiveGameAliveWidget(
+                            modifier = Modifier.fillMaxWidth(),
+                            showOnlyAlive = showOnlyAlive,
+                            onShowOnlyAliveChanged = { showOnlyAlive = it },
+                        )
+                        LiveGameShowHistory(
+                            modifier = Modifier.fillMaxWidth(),
+                            showHistory = showHistory,
+                            onShowHistoryChanged = { showHistory = it },
+                        )
+
+                    }
+                    val deletePlayersCandidates = state.deleteCandidates
+                    if (deletePlayersCandidates.isNotEmpty()) {
+                        LiveDeletePlayerWidget(
+                            modifier = Modifier.fillMaxWidth(),
+                            playerNumbers = deletePlayersCandidates,
+                            isDayStage = state.stage is LiveStage.Day,
+                            onAccept = { viewModel.acceptDeletePlayers(it) },
+                        )
+                    }
                 }
-                val deletePlayersCandidates = state.deleteCandidates
-                if (deletePlayersCandidates.isNotEmpty()) {
-                    LiveDeletePlayerWidget(
-                        modifier = Modifier.fillMaxWidth(),
-                        playerNumbers = deletePlayersCandidates,
-                        isDayStage = state.stage is LiveStage.Day,
-                        onAccept = { viewModel.acceptDeletePlayers(it) },
-                    )
+            }
+            if (showHistory) {
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.width(250.dp).fillMaxHeight(),
+                    backgroundColor = White,
+                ) {
+                    LazyColumn(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(history) { history ->
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = history.text,
+                                style = MaterialTheme.typography.body2.copy(fontSize = 10.sp),
+                                color = BlackDark,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    }
                 }
             }
         }
-
-        if (!state.gameActive) {
+        if (!gameActive) {
             Box(
                 Modifier.fillMaxSize()
-                        .background(Color.Gray.copy(alpha = 0.5f))
-                        .clickable(false) {}
+                    .background(Color.Gray.copy(alpha = 0.5f))
+                    .clickable(false) {}
             ) {
                 IconButton(
                     modifier = Modifier.align(Alignment.Center),
@@ -339,6 +385,39 @@ fun LiveGameAliveWidget(
 }
 
 @Composable
+fun LiveGameShowHistory(
+    modifier: Modifier = Modifier,
+    showHistory: Boolean,
+    onShowHistoryChanged: (Boolean) -> Unit,
+) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        backgroundColor = White,
+    ) {
+        Row(
+            modifier = modifier.padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "Показать историю",
+                style = MaterialTheme.typography.body1,
+            )
+            Switch(
+                checked = showHistory,
+                onCheckedChange = onShowHistoryChanged,
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = BlackDark,
+                    checkedTrackColor = GreyLight,
+                    uncheckedThumbColor = WhiteLight,
+                    uncheckedTrackColor = White,
+                )
+            )
+        }
+    }
+}
+
+@Composable
 fun SpeechStateWidget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
@@ -362,6 +441,7 @@ fun SpeechStateWidget(
     }
 }
 
+
 @Composable
 fun LiveStage.Day.LastVotedSpeech.Widget(
     modifier: Modifier = Modifier,
@@ -374,7 +454,7 @@ fun LiveStage.Day.LastVotedSpeech.Widget(
         title = "Последнее слово заголосованного",
         playerNumber = playerNumber,
         seconds = playerSpeechTimeSeconds,
-        onFinish = onFinish
+        onFinish = onFinish,
     )
 }
 
@@ -390,7 +470,7 @@ fun LiveStage.Day.LastDeathSpeech.Widget(
         title = "Последнее слово умершего",
         playerNumber = playerNumber,
         seconds = playerSpeechTimeSeconds,
-        onFinish = onFinish
+        onFinish = onFinish,
     )
 }
 
@@ -408,6 +488,6 @@ fun LiveStage.Day.Speech.Widget(
         title = title,
         playerNumber = playerNumber,
         seconds = time,
-        onFinish = onFinish
+        onFinish = onFinish,
     )
 }

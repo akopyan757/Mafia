@@ -35,9 +35,9 @@ fun LiveSpeechPlayerTimerWidget(
     title: String = "",
     playerNumber: Int = 1,
     seconds: Int = 0,
-    onFinish: () -> Unit = {}
+    onFinish: () -> Unit = {},
 ) {
-    var timer by remember { mutableStateOf(seconds) }
+    var timer by remember(playerNumber) { mutableStateOf(seconds) }
     val timerColor = if (timer > 10) BlackDark else Red
     var isActive by remember { mutableStateOf(false) }
     val iconPlayRes = if (isActive) "ic_pause_button.xml" else "ic_play_button.xml"

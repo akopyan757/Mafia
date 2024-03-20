@@ -11,7 +11,10 @@ sealed class LiveStage(val type: StageDayType) {
             val playerNumber: Int,
             val candidateForElimination: Boolean = false,
         ): Day()
-        data class Vote(val reVote: Boolean = false): Day()
+        data class Vote(
+            val reVote: Boolean = false,
+            val candidates: List<Int> = emptyList(),
+        ): Day()
     }
 
     class Night : LiveStage(StageDayType.Night)

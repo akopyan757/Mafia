@@ -29,6 +29,10 @@ fun LiveGameTimer(
     active: Boolean = false,
     onStopGame: (totalTime: Int) -> Unit = {},
     onPauseGame: () -> Unit = {},
+    undoActive: Boolean = false,
+    onUndo: () -> Unit = {},
+    redoActive: Boolean = false,
+    onRedo: () -> Unit = {},
 ) {
     var timer by remember { mutableStateOf(0) }
     val hours by derivedStateOf { timer.div(3600).toString() }
@@ -67,6 +71,30 @@ fun LiveGameTimer(
             ) {
                 Text(
                     text = "Стоп",
+                    style = MaterialTheme.typography.body1,
+                    color = White,
+                )
+            }
+            Button(
+                onClick = { onUndo() },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = undoActive,
+                colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+            ) {
+                Text(
+                    text = "Undo",
+                    style = MaterialTheme.typography.body1,
+                    color = White,
+                )
+            }
+            Button(
+                onClick = { onRedo() },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = redoActive,
+                colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+            ) {
+                Text(
+                    text = "Redo",
                     style = MaterialTheme.typography.body1,
                     color = White,
                 )
