@@ -41,13 +41,11 @@ import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.components.liveGame.LiveGameComponent
-import com.cheesecake.mafia.state.GameAction
 import com.cheesecake.mafia.state.GameActionType
-import com.cheesecake.mafia.state.GamePlayerItemState
-import com.cheesecake.mafia.state.GameStageState
+import com.cheesecake.mafia.state.LivePlayerState
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
-import com.cheesecake.mafia.state.StageAction
+import com.cheesecake.mafia.state.LiveStage
 import com.cheesecake.mafia.ui.GameStanding
 import com.cheesecake.mafia.ui.candidateSpeechTimeSeconds
 import com.cheesecake.mafia.ui.liveGame.widgets.LiveDeletePlayerWidget
@@ -77,14 +75,7 @@ fun LiveGameScreen(
     viewModel: LiveGameStandingViewModel,
     onFinishGame: () -> Unit,
 ) {
-    val gameActive by viewModel.gameActive.collectAsState()
-    val items by viewModel.playerItems.collectAsState()
-    val showRoles by viewModel.showRoles.collectAsState()
-    val stageState by viewModel.stageState.collectAsState()
-    val candidates by viewModel.voteCandidates.collectAsState()
-    val killedPlayers by viewModel.killedPlayers.collectAsState()
-    val clientChosenPlayer by viewModel.clientChosenPlayer.collectAsState()
-    val deletePlayersCandidates by viewModel.deletePlayerCandidates.collectAsState()
+    val state by viewModel.state.collectAsState()
     var showOnlyAlive by remember { mutableStateOf(false) }
     var actionSelections by remember { mutableStateOf(mapOf<GameActionType.NightActon, Int>()) }
 
@@ -95,11 +86,12 @@ fun LiveGameScreen(
         ) {
             LiveGameStanding(
                 modifier = Modifier.wrapContentWidth(),
-                items = items,
-                showRoles = showRoles,
+                items = state.players,
+                showRoles = state.showRoles,
                 showOnlyAlive = showOnlyAlive,
-                stageState = stageState,
-                voteCandidates = candidates,
+                round = state.round,
+                stage = state.stage,
+                voteCandidates = state.voteCandidates,
                 onPutOnVote = { number -> viewModel.addVotedCandidate(number) },
                 onFoulsChanged = { number, fouls -> viewModel.changeFoulsCount(number, fouls) },
                 nightActions = viewModel.getNightGameActions(onlyActive = true),
@@ -114,7 +106,7 @@ fun LiveGameScreen(
             ) {
                 LiveGameTimer(
                     modifier = Modifier.width(150.dp),
-                    active = gameActive,
+                    active = state.gameActive,
                     onPauseGame = viewModel::pauseGame,
                     onStopGame = {
                         viewModel.stopGame(it)
@@ -122,24 +114,25 @@ fun LiveGameScreen(
                     },
                 )
                 SpeechStateWidget(
-                    stageAction = stageState.stageAction,
-                    gameActive = gameActive,
-                    candidates = candidates,
+                    stageAction = state.stage,
+                    gameActive = state.gameActive,
+                    candidates = state.voteCandidates,
                     onFinish = { viewModel.nextStage() },
                 )
-                if (stageState.stageAction is StageAction.Day.Vote) {
+                if (state.stage is LiveStage.Day.Vote) {
                     LiveVoteWidget(
-                        state = stageState.stageAction as StageAction.Day.Vote,
+                        state = state.stage as LiveStage.Day.Vote,
+                        totalVotes = state.totalVotes,
+                        candidates = state.voteCandidates,
                         onFinish = { viewModel.votePlayers(it) },
                         onRepeatSpeech = { viewModel.reVotePlayers(it) },
                     )
                 }
-                if (stageState.stageAction is StageAction.Night ||
-                    stageState.stageAction is StageAction.Day.LastDeathSpeech) {
+                if (state.stage is LiveStage.Night || state.stage is LiveStage.Day.LastDeathSpeech) {
                     LiveNightWidget(
                         allActions = viewModel.getNightGameActions(),
-                        killedPlayers = killedPlayers,
-                        clientChosen = clientChosenPlayer,
+                        killedPlayers = state.lastKilledPlayers,
+                        clientChosen = state.lastClientPlayer,
                         onFinish = { viewModel.acceptNightActions() },
                     )
                 }
@@ -149,7 +142,7 @@ fun LiveGameScreen(
                 ) {
                     LiveGameRolesWidget(
                         modifier = Modifier.fillMaxWidth(),
-                        showRoles = showRoles,
+                        showRoles = state.showRoles,
                         onShowRolesChanged = { showRoles -> viewModel.changeShowRolesState(showRoles) },
                     )
                     LiveGameAliveWidget(
@@ -157,19 +150,20 @@ fun LiveGameScreen(
                         showOnlyAlive = showOnlyAlive,
                         onShowOnlyAliveChanged = { showOnlyAlive = it },
                     )
-                    if (deletePlayersCandidates.isNotEmpty()) {
-                        LiveDeletePlayerWidget(
-                            modifier = Modifier.fillMaxWidth(),
-                            playerNumbers = deletePlayersCandidates,
-                            isDayStage = stageState.stageAction is StageAction.Day,
-                            onAccept = { viewModel.acceptDeletePlayers(it) },
-                        )
-                    }
+                }
+                val deletePlayersCandidates = state.deleteCandidates
+                if (deletePlayersCandidates.isNotEmpty()) {
+                    LiveDeletePlayerWidget(
+                        modifier = Modifier.fillMaxWidth(),
+                        playerNumbers = deletePlayersCandidates,
+                        isDayStage = state.stage is LiveStage.Day,
+                        onAccept = { viewModel.acceptDeletePlayers(it) },
+                    )
                 }
             }
         }
 
-        if (!gameActive) {
+        if (!state.gameActive) {
             Box(
                 Modifier.fillMaxSize()
                         .background(Color.Gray.copy(alpha = 0.5f))
@@ -199,10 +193,11 @@ data class SelectedNightGameAction(
 @Composable
 fun LiveGameStanding(
     modifier: Modifier = Modifier,
-    items: List<GamePlayerItemState> = emptyList(),
+    items: List<LivePlayerState> = emptyList(),
     showRoles: Boolean = true,
     showOnlyAlive: Boolean = false,
-    stageState: GameStageState,
+    round: Int = 0,
+    stage: LiveStage = LiveStage.Start,
     onFoulsChanged: (number: Int, fouls: Int) -> Unit,
     onPutOnVote: (number: Int) -> Unit = {},
     voteCandidates: List<Int> = emptyList(),
@@ -211,14 +206,14 @@ fun LiveGameStanding(
 ) {
     val alivePlayers = items.filter { it.isAlive }
     val players = if (showOnlyAlive) alivePlayers else items
-    val nightActionsChecks = remember(stageState, nightActions.size, items.size) {
+    val nightActionsChecks = remember(stage, nightActions.size, items.size) {
         mutableStateMapOf(
             *Array(players.size) { index ->
                 players[index].number to nightActions.map { SelectedNightGameAction(it, false) }
             }
         )
     }
-    val actionSelections by remember(stageState, nightActions.size, items.size) {
+    val actionSelections by remember(stage, nightActions.size, items.size) {
         derivedStateOf {
             hashMapOf<GameActionType.NightActon, Int>().also {
                 nightActionsChecks.forEach { (number, actions) ->
@@ -235,7 +230,8 @@ fun LiveGameStanding(
         standingState = GameStandingState(
             id = 0,
             status = GameStatus.Live,
-            stage = stageState,
+            round = round,
+            stage = stage,
             isShowRoles = showRoles,
         ),
         itemsCount = players.size,
@@ -249,7 +245,8 @@ fun LiveGameStanding(
                 onPutOnVote = { onPutOnVote(item.number) },
                 showRoles = showRoles,
                 isPutOnVote = voteCandidates.contains(item.number),
-                stageState = stageState,
+                round = round,
+                stage = stage,
                 checkedActions = actions,
                 onActionCheckedChanged = { actionChecks ->
                     nightActionsChecks[item.number] = actionChecks
@@ -345,19 +342,19 @@ fun LiveGameAliveWidget(
 fun SpeechStateWidget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
-    stageAction: StageAction,
+    stageAction: LiveStage,
     candidates: List<Int> = emptyList(),
     onFinish: () -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         when (stageAction) {
-            is StageAction.Day.LastVotedSpeech -> stageAction.Widget(modifier, gameActive, onFinish)
-            is StageAction.Day.LastDeathSpeech -> stageAction.Widget(modifier, gameActive, onFinish)
-            is StageAction.Day.Speech -> stageAction.Widget(modifier, gameActive, onFinish)
+            is LiveStage.Day.LastVotedSpeech -> stageAction.Widget(modifier, gameActive, onFinish)
+            is LiveStage.Day.LastDeathSpeech -> stageAction.Widget(modifier, gameActive, onFinish)
+            is LiveStage.Day.Speech -> stageAction.Widget(modifier, gameActive, onFinish)
             else -> {}
         }
 
-        if (candidates.isNotEmpty() && stageAction is StageAction.Day.Speech) {
+        if (candidates.isNotEmpty() && stageAction is LiveStage.Day.Speech) {
             LiveGameVoteCandidatesWidget(
                 numbers = candidates,
             )
@@ -366,7 +363,7 @@ fun SpeechStateWidget(
 }
 
 @Composable
-fun StageAction.Day.LastVotedSpeech.Widget(
+fun LiveStage.Day.LastVotedSpeech.Widget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
     onFinish: () -> Unit = {},
@@ -382,7 +379,7 @@ fun StageAction.Day.LastVotedSpeech.Widget(
 }
 
 @Composable
-fun StageAction.Day.LastDeathSpeech.Widget(
+fun LiveStage.Day.LastDeathSpeech.Widget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
     onFinish: () -> Unit = {},
@@ -398,7 +395,7 @@ fun StageAction.Day.LastDeathSpeech.Widget(
 }
 
 @Composable
-fun StageAction.Day.Speech.Widget(
+fun LiveStage.Day.Speech.Widget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
     onFinish: () -> Unit = {},

@@ -29,11 +29,11 @@ import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.Yellow
 import com.cheesecake.mafia.common.imageResources
-import com.cheesecake.mafia.state.GamePlayerItemState
+import com.cheesecake.mafia.state.LivePlayerState
 import com.cheesecake.mafia.state.GamePlayerRole
-import com.cheesecake.mafia.state.GameStageState
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
+import com.cheesecake.mafia.state.LiveStage
 import com.cheesecake.mafia.state.StageDayType
 import com.cheesecake.mafia.state.generateHistory
 
@@ -47,6 +47,7 @@ fun GameStanding(
     LazyColumn(modifier = modifier) {
         item {
             HeaderItem(
+                round = standingState.round,
                 stage = standingState.stage,
                 status = standingState.status,
                 isShowRoles = standingState.isShowRoles,
@@ -68,7 +69,8 @@ fun GameStanding(
 @Composable
 fun HeaderItem(
     modifier: Modifier = Modifier,
-    stage: GameStageState,
+    round: Int,
+    stage: LiveStage,
     status: GameStatus,
     isShowRoles: Boolean,
 ) {
@@ -136,7 +138,7 @@ fun HeaderItem(
                 textAlign = TextAlign.Center,
                 color = White,
             )
-            val actionsHistory = generateHistory(stage.stageAction.type, stage.count)
+            val actionsHistory = generateHistory(stage.type, round)
             actionsHistory.forEachIndexed { index, (stageType, _) ->
                 VerticalDivider(
                     color = White,
@@ -180,8 +182,9 @@ fun VerticalDivider(
 @Composable
 fun FinishedGameItem(
     modifier: Modifier = Modifier,
-    player: GamePlayerItemState,
-    stage: GameStageState,
+    player: LivePlayerState,
+    round: Int,
+    stage: LiveStage,
     position: Int,
 ) {
     val backgroundColor = when (player.role) {
@@ -231,7 +234,7 @@ fun FinishedGameItem(
             Spacer(Modifier.weight(1f))
         }
         VerticalDivider(color = WhiteLight, modifier = Modifier.align(Alignment.CenterVertically))
-        for ((stageType, _) in generateHistory(stage.stageAction.type, stage.count)) {
+        for ((stageType, _) in generateHistory(stage.type, round)) {
             val color = if (stageType == StageDayType.Night) {
                 GreyLight.copy(alpha = 0.05f)
             } else {

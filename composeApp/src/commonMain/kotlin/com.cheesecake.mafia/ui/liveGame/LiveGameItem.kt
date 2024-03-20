@@ -38,9 +38,9 @@ import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.YellowDark
 import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.state.GameActionType
-import com.cheesecake.mafia.state.GamePlayerItemState
+import com.cheesecake.mafia.state.LivePlayerState
 import com.cheesecake.mafia.state.GamePlayerRole
-import com.cheesecake.mafia.state.GameStageState
+import com.cheesecake.mafia.state.LiveStage
 import com.cheesecake.mafia.state.StageDayType
 import com.cheesecake.mafia.state.generateHistory
 import com.cheesecake.mafia.state.primaryColor
@@ -57,9 +57,10 @@ import com.cheesecake.mafia.ui.nightStageColumnWeight
 @Composable
 fun LiveGameItem(
     modifier: Modifier = Modifier,
-    player: GamePlayerItemState,
+    player: LivePlayerState,
     showRoles: Boolean = true,
-    stageState: GameStageState,
+    round: Int = 0,
+    stage: LiveStage = LiveStage.Start,
     onFoulsChanged: (Int) -> Unit = {},
     onPutOnVote: () -> Unit = {},
     isPutOnVote: Boolean = false,
@@ -133,7 +134,7 @@ fun LiveGameItem(
         } else {
             Box(modifier = Modifier.width(foulsColumnSize))
         }
-        val actionsHistory = generateHistory(stageState.stageAction.type, stageState.count)
+        val actionsHistory = generateHistory(stage.type, round)
         if (actionsHistory.isNotEmpty()) {
             (0 until actionsHistory.size - 1).forEach { index ->
                 val (stageDayType, dayIndex) = actionsHistory[index]
@@ -159,7 +160,7 @@ fun LiveGameItem(
                             modifier = actionItemModifier,
                             isPutOnVote = isPutOnVote,
                             onPutOnVote = onPutOnVote,
-                            canAddCandidate = stageState.stageAction.canAddCandidate()
+                            canAddCandidate = stage.canAddCandidate()
                         )
                     } else {
                         HistoryItem(

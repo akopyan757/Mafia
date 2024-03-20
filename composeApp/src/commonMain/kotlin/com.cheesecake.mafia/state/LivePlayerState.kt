@@ -1,6 +1,8 @@
 package com.cheesecake.mafia.state
 
-data class GamePlayerItemState(
+import com.cheesecake.mafia.viewModel.Item
+
+data class LivePlayerState(
     val playerId: Int,
     val number: Int = 1,
     val name: String = "",
@@ -11,4 +13,6 @@ data class GamePlayerItemState(
     val actions: List<GameAction> = emptyList(),
     val fouls: Int = 0,
     val points: Float = 0f,
-)
+): Item<Int> {
+    override val key: Int get() = number
+}

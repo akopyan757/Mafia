@@ -2,231 +2,237 @@ package com.cheesecake.mafia.viewModel
 
 import com.cheesecake.mafia.state.GameAction
 import com.cheesecake.mafia.state.GameActionType
-import com.cheesecake.mafia.state.GamePlayerItemState
+import com.cheesecake.mafia.state.LivePlayerState
 import com.cheesecake.mafia.state.GamePlayerRole
-import com.cheesecake.mafia.state.GameStageState
 import com.cheesecake.mafia.state.NewGamePlayerItem
-import com.cheesecake.mafia.state.StageAction
+import com.cheesecake.mafia.state.LiveStage
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+
+data class LiveGameState(
+    val gameActive: Boolean = false,
+    val showRoles: Boolean = true,
+    val players: List<LivePlayerState> = emptyList(),
+    val round: Int = 0,
+    val stage: LiveStage = LiveStage.Start,
+    val queueStage: ArrayDeque<LiveStage> = ArrayDeque(40),
+    val voteCandidates: List<Int> = emptyList(),
+    val nightActions: Map<GameActionType.NightActon, Int> = emptyMap(),
+) {
+    val totalVotes: Int
+        get() = players.map { it.isAlive && !it.isClient }.size
+
+    val deleteCandidates: List<Int>
+        get() = players.filter { it.isAlive && it.fouls == 4 }.map { it.number }
+
+    val lastClientPlayer: Int?
+        get() {
+            val clientChosen = nightActions[GameActionType.NightActon.ClientChoose]
+            return clientChosen?.takeIf { clientChosen !in lastKilledPlayers }
+        }
+
+    val lastKilledPlayers: List<Int>
+        get() {
+            val roles = players.associateBy(keySelector = { it.role }) { it.number }
+            val mafiaKilling = nightActions[GameActionType.NightActon.MafiaKilling]
+            val maniacKilling = nightActions[GameActionType.NightActon.ManiacKilling]
+            val clientChosen = nightActions[GameActionType.NightActon.ClientChoose]
+            val doctorSaving = nightActions[GameActionType.NightActon.Doctor]
+            return if (
+                roles[GamePlayerRole.Red.Whore] == mafiaKilling ||
+                roles[GamePlayerRole.Red.Whore] == maniacKilling
+            ) {
+                listOfNotNull(mafiaKilling, maniacKilling, clientChosen)
+                    .filterNot { number -> doctorSaving == number }
+            } else {
+                listOfNotNull(mafiaKilling, maniacKilling)
+                    .filterNot { number -> doctorSaving == number || clientChosen == number }
+            }
+        }
+}
 
 class LiveGameStandingViewModel(
     players: List<NewGamePlayerItem>,
 ): ViewModel() {
 
-    private val _gameActive = MutableStateFlow(false)
-    private val _playerItems = MutableStateFlow(players.map { item ->
-        GamePlayerItemState(item.player.id, item.number, item.player.name, item.role)
-    })
-    private val _showRoles = MutableStateFlow(true)
-    private val _stageState = MutableStateFlow(GameStageState(0, StageAction.Start))
-    private val _stageActionQueue = MutableStateFlow(ArrayDeque<StageAction>(30))
-    private val _voteCandidates = MutableStateFlow<List<Int>>(emptyList())
-    private val _killedPlayers = MutableStateFlow<List<Int>>(emptyList())
-    private val _clientChosenPlayer = MutableStateFlow<Int?>(null)
-    private val _nightAction = MutableStateFlow<Map<GameActionType.NightActon, Int>>(mapOf())
-    private val _deletePlayerCandidates = MutableStateFlow<List<Int>>(emptyList())
+    private val _state = MutableStateFlow(LiveGameState())
 
-    val gameActive: StateFlow<Boolean> get() = _gameActive
-    val playerItems: StateFlow<List<GamePlayerItemState>> get() = _playerItems
-    val showRoles: StateFlow<Boolean> get() = _showRoles
-    val stageState: StateFlow<GameStageState> get() = _stageState
-    val voteCandidates: StateFlow<List<Int>> get() = _voteCandidates
-    val killedPlayers: StateFlow<List<Int>> get() = _killedPlayers
-    val clientChosenPlayer: StateFlow<Int?> get() = _clientChosenPlayer
-    val deletePlayerCandidates: StateFlow<List<Int>> get() = _deletePlayerCandidates
+    val state: StateFlow<LiveGameState> get() = _state
 
     init {
-        val alivePlayers = _playerItems.value.filter { it.isAlive }
-        changeActionQueue { queue ->
-            queue.addAll(alivePlayers.map { StageAction.Day.Speech(it.number) })
-            queue.add(StageAction.Day.Vote())
+        val startPlayers = players.map { item ->
+            LivePlayerState(item.player.id, item.number, item.player.name, item.role)
+        }
+        val alivePlayers = startPlayers.filter { it.isAlive }
+        val startQueue = _state.value.queueStage.let { queue ->
+            queue.addAll(alivePlayers.map { LiveStage.Day.Speech(it.number) })
+            queue.add(LiveStage.Day.Vote())
             queue
         }
+        changeState { state ->
+            state.copy(
+                players = startPlayers, queueStage = startQueue,
+            )
+        }
+
         nextStage()
     }
 
     fun startOrResumeGame() {
-        _gameActive.value = true
+        changeState { state -> state.copy(gameActive = true) }
     }
 
     fun pauseGame() {
-        _gameActive.value = false
+        changeState { state -> state.copy(gameActive = false) }
     }
 
     fun stopGame(time: Int) {
-        _gameActive.value = false
+        changeState { state -> state.copy(gameActive = false) }
     }
 
     fun changeShowRolesState(showRoles: Boolean) {
-        _showRoles.value = showRoles
+        changeState { state -> state.copy(showRoles = showRoles) }
     }
 
     fun nextStage() {
-        var stageAction = _stageActionQueue.value.removeFirstOrNull() ?: return
-        var stageStageIndex = _stageState.value.count
-        if (stageAction is StageAction.Day.Vote) {
-            if (_voteCandidates.value.isEmpty()) {
-                changeActionQueue { queue -> queue.add(StageAction.Night()); queue }
-                nextStage()
-                return
-            } else if (!stageAction.reVote) {
-                stageAction = stageAction.copy(
-                    candidates = _voteCandidates.value,
-                    totalVotes = _playerItems.value.filter { it.isAlive }.size
+        changeState { state ->
+            val queue = state.queueStage
+            val currentStage = queue.removeFirstOrNull() ?: return@changeState state
+            if (currentStage is LiveStage.Day.Vote) {
+                if (state.voteCandidates.isEmpty()) {
+                    state.copy(queueStage = queue, stage = LiveStage.Night())
+                } else {
+                    state.copy(queueStage = queue, stage = currentStage)
+                }
+            } else if (currentStage is LiveStage.Night) {
+                state.copy(
+                    round = state.round + 1,
+                    stage = currentStage,
+                    players = state.players.map { player -> player.copy(isClient = false) },
+                    voteCandidates = emptyList(),
                 )
+            } else {
+                state.copy(queueStage = queue, stage = currentStage)
             }
-        } else if (stageAction is StageAction.Night) {
-            stageStageIndex += 1
-            changeAllItems { it.copy(isClient = false) }
-            _voteCandidates.value = emptyList()
         }
-        _stageState.value = _stageState.value.copy(
-            stageAction = stageAction,
-            count = stageStageIndex
-        )
     }
 
     fun addVotedCandidate(playerNumber: Int) {
-        if (!_voteCandidates.value.contains(playerNumber)) {
-            _voteCandidates.value += listOf(playerNumber)
+        changeState { state ->
+            state.copy(voteCandidates = state.voteCandidates + listOf(playerNumber))
         }
     }
 
     fun reVotePlayers(votedPlayers: List<Int>) {
-        changeActionQueue { queue ->
-            queue.addAll(votedPlayers.map { StageAction.Day.Speech(it, candidateForElimination = true) })
-            queue.add(StageAction.Day.Vote(
-                candidates = votedPlayers,
-                totalVotes = _playerItems.value.filter { it.isAlive }.size,
-                reVote = true
-            ))
-            queue
+        changeState { state ->
+            val queue = state.queueStage
+            queue.addAll(votedPlayers.map { LiveStage.Day.Speech(it, candidateForElimination = true) })
+            queue.add(LiveStage.Day.Vote(reVote = true))
+            state.copy(
+                voteCandidates = votedPlayers,
+                queueStage = queue,
+            )
         }
         nextStage()
     }
 
     fun votePlayers(votedPlayers: List<Int>) {
-        changeActionQueue { queue ->
-            queue.addAll(votedPlayers.map { StageAction.Day.LastVotedSpeech(it) })
-            queue.add(StageAction.Night())
-            queue
-        }
-        changeItems(votedPlayers) { player ->
-            player.copy(
-                isAlive = false,
-                actions = player.actions + listOf(
-                    GameAction(stageState.value.count, GameActionType.DayAction.Voted)
-                )
+        changeState { state ->
+            val queue = state.queueStage
+            queue.addAll(votedPlayers.map { LiveStage.Day.LastVotedSpeech(it) })
+            queue.add(LiveStage.Night())
+            state.copy(
+                queueStage = queue,
+                players = state.players.changeItems(votedPlayers) { player ->
+                    player.copy(
+                        isAlive = false,
+                        actions = player.actions + listOf(
+                            GameAction(state.round, GameActionType.DayAction.Voted)
+                        )
+                    )
+                }
             )
         }
         nextStage()
     }
 
     fun getNightGameActions(onlyActive: Boolean = false): List<GameActionType.NightActon> {
-        val playersRoles = _playerItems.value.filter { it.isAlive || !onlyActive }.map { it.role }
-        return GameActionType.NightActon.activeRoles(playersRoles)
+        val roles = _state.value.players.filter { it.isAlive || !onlyActive }.map { it.role }
+        return GameActionType.NightActon.activeRoles(roles)
     }
 
     fun changeNightAction(actions: Map<GameActionType.NightActon, Int>) {
-        val roles = _playerItems.value.associateBy(keySelector = { it.role }) { it.number }
-        val mafiaKilling = actions[GameActionType.NightActon.MafiaKilling]
-        val maniacKilling = actions[GameActionType.NightActon.ManiacKilling]
-        var clientChosen = actions[GameActionType.NightActon.ClientChoose]
-        val doctorSaving = actions[GameActionType.NightActon.Doctor]
-        val killedPlayers = if (
-            roles[GamePlayerRole.Red.Whore] == mafiaKilling ||
-            roles[GamePlayerRole.Red.Whore] == maniacKilling
-        ) {
-            listOfNotNull(mafiaKilling, maniacKilling, clientChosen)
-                .filterNot { number -> doctorSaving == number }
-                .also { clientChosen = null }
-        } else {
-            listOfNotNull(mafiaKilling, maniacKilling)
-                .filterNot { number -> doctorSaving == number || clientChosen == number }
-        }
-        _killedPlayers.value = killedPlayers
-        _clientChosenPlayer.value = clientChosen
-        _nightAction.value = actions
+        changeState { state -> state.copy(nightActions = actions) }
     }
 
     fun acceptNightActions() {
-        val dayIndex = _stageState.value.count
-        _nightAction.value.forEach { (action, number) ->
-            changeItem(number) { state ->
-                state.copy(
-                    actions = state.actions + listOf(GameAction(dayIndex, action)),
-                    isAlive = state.isAlive && !_killedPlayers.value.contains(number),
-                    isClient = action == GameActionType.NightActon.ClientChoose,
-                )
-            }
-        }
-        val speechPlayers = _playerItems.value.filter { it.isAlive && !it.isClient }
-        changeActionQueue { queue ->
-            queue.addAll(_killedPlayers.value.map { StageAction.Day.LastDeathSpeech(it) })
-            queue.addAll(speechPlayers.map { StageAction.Day.Speech(it.number) })
-            queue.add(StageAction.Day.Vote())
-            queue
+        changeState { state ->
+            val speechPlayers = state.players.filter { it.isAlive && !it.isClient }
+            val queue = state.queueStage
+            queue.addAll(state.lastKilledPlayers.map { LiveStage.Day.LastDeathSpeech(it) })
+            queue.addAll(speechPlayers.map { LiveStage.Day.Speech(it.number) })
+            queue.add(LiveStage.Day.Vote())
+            state.copy(queueStage = queue).copyWithAcceptanceNightActions()
         }
         nextStage()
     }
 
     fun changeFoulsCount(playerNumber: Int, fouls: Int) {
-        changeItem(playerNumber) { player -> player.copy(fouls = fouls) }
-        _deletePlayerCandidates.value = _playerItems.value
-            .filter { !it.isDeleted && it.fouls == 4 }
-            .map { it.number }
+        changeState { state ->
+            state.copy(players = state.players.changeItem(playerNumber) { it.copy(fouls = fouls) })
+        }
     }
 
     fun acceptDeletePlayers(skipToNight: Boolean) {
-        val numbers = _deletePlayerCandidates.value.takeIf { it.isNotEmpty() } ?: return
-        changeItems(numbers) { players ->
-            players.copy(
-                isAlive = false,
-                isDeleted = true,
-                isClient = false,
-                fouls = 4,
-                actions = players.actions + listOf(
-                    GameAction(stageState.value.count, GameActionType.DayAction.Deleted)
-                )
+        val numbers = state.value.deleteCandidates
+        if (numbers.isEmpty()) return
+        val queue = state.value.queueStage
+        if (skipToNight) {
+            queue.clear()
+            queue.add(LiveStage.Night())
+        }
+        changeState { state ->
+            state.copy(
+                queueStage = queue,
+                players = state.players.changeItems(numbers) { player ->
+                    player.copy(
+                        isAlive = false,
+                        isDeleted = true,
+                        isClient = false,
+                        fouls = 4,
+                        actions = player.actions + listOf(
+                            GameAction(state.round, GameActionType.DayAction.Deleted)
+                        ),
+                    )
+                }
             )
         }
         if (skipToNight) {
-            changeActionQueue { queue ->
-                queue.clear()
-                queue.add(StageAction.Night())
-                queue
-            }
             nextStage()
         }
     }
 
-    private fun changeActionQueue(transform: (queue: ArrayDeque<StageAction>) -> ArrayDeque<StageAction>) {
-        _stageActionQueue.value = transform(_stageActionQueue.value)
-    }
-
-    private fun changeAllItems(transform: (GamePlayerItemState) -> GamePlayerItemState) {
-        val mutableList = _playerItems.value.toMutableList()
-        mutableList.forEachIndexed { index, player ->
-            mutableList[index] = transform(player)
+    private fun LiveGameState.copyWithAcceptanceNightActions(): LiveGameState {
+        val players = players.toMutableList()
+        nightActions.forEach { (nightAction, number) ->
+            val index = players.indexOfFirst { it.number == number }
+            if (index != -1) {
+                val player = players[index]
+                players[index] = player.copy(
+                    actions = player.actions + listOf(GameAction(round, nightAction)),
+                    isClient = player.number == lastClientPlayer,
+                    isAlive = player.isAlive && player.number !in lastKilledPlayers,
+                )
+            }
         }
-        _playerItems.value = mutableList.toList()
+        return copy(
+            players = players.toList(),
+            nightActions = emptyMap(),
+        )
     }
 
-    private fun changeItems(numbers: List<Int>, transform: (GamePlayerItemState) -> GamePlayerItemState) {
-        val mutableList = _playerItems.value.toMutableList()
-        numbers.forEach { number ->
-            val index = mutableList.indexOfFirst { number == it.number }.takeIf { it != -1 } ?: return
-            mutableList[index] = transform(mutableList[index])
-        }
-        _playerItems.value = mutableList.toList()
-    }
-
-    private fun changeItem(number: Int, transform: (GamePlayerItemState) -> GamePlayerItemState) {
-        val mutableList = _playerItems.value.toMutableList()
-        val index = mutableList.indexOfFirst { it.number == number }.takeIf { it != -1 } ?: return
-        mutableList[index] = transform(mutableList[index])
-        _playerItems.value = mutableList.toList()
+    private fun changeState(transform: (LiveGameState) -> LiveGameState) {
+        _state.value = transform(_state.value)
     }
 }

@@ -6,87 +6,118 @@ import com.cheesecake.mafia.state.PlayerState
 import com.cheesecake.mafia.state.SelectPlayerState
 import com.cheesecake.mafia.state.priority
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+
+data class NewGameState(
+    val items: List<NewGamePlayerItem> = emptyList(),
+    val totalPlayers: List<PlayerState> = emptyList(),
+    val availablePlayers: List<PlayerState> = emptyList(),
+) {
+    val isItemsFilled : Boolean
+        get() = items.all { it.role != GamePlayerRole.None && it.player != SelectPlayerState.None }
+
+    val rolesCount: List<Pair<GamePlayerRole, Int>>
+        get() = items
+            .groupBy { it.role }
+            .map { (role, items) -> role to items.size }
+            .filterNot { (role, count) -> count == 0 || role == GamePlayerRole.None }
+            .sortedByDescending { (role, count) -> role.priority() * 100 + count  }
+}
 
 class NewGameStandingViewModel: ViewModel() {
 
-    private val _playersCounts = MutableStateFlow(10)
-    private val _items = MutableStateFlow(
-        List(_playersCounts.value) { index -> NewGamePlayerItem(index + 1) }
-    )
-    private val _totalAvailablePlayer = players
-    private val _availablePlayer = MutableStateFlow(_totalAvailablePlayer)
+    private val _state = MutableStateFlow(NewGameState())
+    val state: StateFlow<NewGameState> get() = _state
 
-    val playersCount: StateFlow<Int>
-        get() = _playersCounts
-
-    val items: StateFlow<List<NewGamePlayerItem>>
-        get() = _items
-
-    val isItemsFilled : Flow<Boolean>
-        get() = _items.map { items ->
-            items.all { it.role != GamePlayerRole.None && it.player != SelectPlayerState.None }
-        }
-
-    val availablePlayer: StateFlow<List<PlayerState>>
-        get() = _availablePlayer
-
-    val rolesCount: Flow<List<Pair<GamePlayerRole, Int>>>
-        get() = _items.map { roleItems ->
-            roleItems.groupBy { it.role }
-                .map { (role, items) -> role to items.size }
-                .filterNot { (role, count) -> count == 0 || role == GamePlayerRole.None }
-                .sortedByDescending { (role, count) -> role.priority() * 100 + count  }
-        }
+    init {
+        _state.value = NewGameState(
+            items = listOf(
+                NewGamePlayerItem(1, SelectPlayerState.New("AAA"), GamePlayerRole.Black.Mafia),
+                NewGamePlayerItem(2, SelectPlayerState.New("BBB"), GamePlayerRole.Black.Mafia),
+                NewGamePlayerItem(3, SelectPlayerState.New("CCC"), GamePlayerRole.Black.Don),
+                NewGamePlayerItem(4, SelectPlayerState.New("DDD"), GamePlayerRole.White.Maniac),
+                NewGamePlayerItem(5, SelectPlayerState.New("EEE"), GamePlayerRole.Red.Сivilian),
+                NewGamePlayerItem(6, SelectPlayerState.New("FFF"), GamePlayerRole.Red.Сivilian),
+                NewGamePlayerItem(7, SelectPlayerState.New("HHH"), GamePlayerRole.Red.Сivilian),
+                NewGamePlayerItem(8, SelectPlayerState.New("III"), GamePlayerRole.Red.Doctor),
+                NewGamePlayerItem(9, SelectPlayerState.New("JJJ"), GamePlayerRole.Red.Sheriff),
+                NewGamePlayerItem(10, SelectPlayerState.New("KKK"), GamePlayerRole.Red.Whore),
+            ),
+            totalPlayers = players,
+            availablePlayers = players,
+        )
+    }
 
     fun onPlayerCountsChanged(count: Int) {
-        _playersCounts.value = count
-        if (count < _items.value.size) {
-            _items.value = _items.value.take(count)
-        } else if (count > _items.value.size) {
-            _items.value += List(count - _items.value.size) { index ->
-                NewGamePlayerItem(_items.value.size + index + 1)
+        changeState { state ->
+            if (count < state.items.size) {
+                state.copy(items = state.items.take(count))
+            } else if (count > state.items.size) {
+                val newItems = List(count - state.items.size) { index ->
+                    NewGamePlayerItem(state.items.size + index + 1)
+                }
+                state.copy(items = state.items + newItems)
+            } else {
+                state
             }
         }
     }
 
     fun onRoleChanged(number: Int, role: GamePlayerRole) {
-        changeItem(number) { item -> item.copy(role = role) }
+        changeState { state ->
+            state.copy(items = state.items.changeItem(number) { item -> item.copy(role = role) })
+        }
     }
 
     fun onPlayerChosen(number: Int, playerState: PlayerState) {
-        changeItem(number) { item -> item.copy(player = SelectPlayerState.Exist(playerState)) }
-        changeAvailablePlayers()
+        changeState { state ->
+            state.copy(
+                items = state.items.changeItem(number) { item ->
+                    item.copy(player = SelectPlayerState.Exist(playerState))
+                }
+            ).copy(
+                availablePlayers = state.getAvailablePlayers()
+            )
+        }
     }
 
     fun onNewPlayerNameChanged(number: Int, name: String) {
-        changeItem(number) { item ->
-            val playerState = if (name.length >= 3) {
-                SelectPlayerState.New(name)
-            } else {
-                SelectPlayerState.None
-            }
-            item.copy(player = playerState)
+        changeState { state ->
+            state.copy(
+                items = state.items.changeItem(number) { player ->
+                    val playerState = if (name.length >= 3) {
+                        SelectPlayerState.New(name)
+                    } else {
+                        SelectPlayerState.None
+                    }
+                    player.copy(player = playerState)
+                },
+            ).copy(
+                availablePlayers = state.getAvailablePlayers(),
+            )
         }
-        changeAvailablePlayers()
     }
 
-    private fun changeItem(number: Int, transform: (NewGamePlayerItem) -> NewGamePlayerItem) {
-        val mutableList = _items.value.toMutableList()
-        val index = mutableList.indexOfFirst { it.number == number }.takeIf { it != -1 } ?: return
-        mutableList[index] = transform(mutableList[index])
-        _items.value = mutableList.toList()
+    private fun changeState(transform: (NewGameState) -> NewGameState) {
+        _state.value = transform(_state.value)
     }
 
-    private fun changeAvailablePlayers() {
-        val attachedPlayers = _items.value
-            .mapNotNull { item -> item.player as? SelectPlayerState.Exist }
-            .map { item -> item.player }
-        val players = _totalAvailablePlayer.filterNot { item -> attachedPlayers.contains(item) }
-        _availablePlayer.value = players
+    private fun NewGameState.getAvailablePlayers(): List<PlayerState> {
+        val attachedPlayers = items.mapNotNull { item ->
+            (item.player as? SelectPlayerState.Exist)?.player
+        }
+        return totalPlayers.filterNot { attachedPlayers.contains(it) }
+    }
+
+    private fun List<NewGamePlayerItem>.changeItem(
+        number: Int,
+        transform: (NewGamePlayerItem) -> NewGamePlayerItem
+    ): List<NewGamePlayerItem> {
+        val players = toMutableList()
+        val index = players.indexOfFirst { it.number == number }
+        if (index != -1) players[index] = transform(players[index])
+        return players.toList()
     }
 
     companion object {

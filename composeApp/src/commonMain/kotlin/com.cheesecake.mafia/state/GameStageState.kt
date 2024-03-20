@@ -1,34 +1,20 @@
 package com.cheesecake.mafia.state
 
-data class GameStageState(
-    val count: Int,
-    val stageAction: StageAction,
-) {
+sealed class LiveStage(val type: StageDayType) {
 
-    override fun toString(): String {
-        return stageAction.type.value + " " + count.toString()
-    }
-}
+    data object Start: LiveStage(StageDayType.Night)
 
-sealed class StageAction(val type: StageDayType) {
-
-    data object Start: StageAction(StageDayType.Night)
-
-    sealed class Day : StageAction(StageDayType.Day) {
+    sealed class Day : LiveStage(StageDayType.Day) {
         data class LastDeathSpeech(val playerNumber: Int): Day()
         data class LastVotedSpeech(val playerNumber: Int): Day()
         data class Speech(
             val playerNumber: Int,
             val candidateForElimination: Boolean = false,
         ): Day()
-        data class Vote(
-            val candidates: List<Int> = emptyList(),
-            val totalVotes: Int = 0,
-            val reVote: Boolean = false,
-        ): Day()
+        data class Vote(val reVote: Boolean = false): Day()
     }
 
-    class Night : StageAction(StageDayType.Night)
+    class Night : LiveStage(StageDayType.Night)
 
     fun canAddCandidate(): Boolean {
         return this is Day.Speech && !this.candidateForElimination

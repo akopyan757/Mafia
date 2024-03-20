@@ -37,7 +37,7 @@ import com.cheesecake.mafia.common.VoteColorEnable
 import com.cheesecake.mafia.common.VoteColorZero
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.imageResources
-import com.cheesecake.mafia.state.StageAction
+import com.cheesecake.mafia.state.LiveStage
 
 private fun SnapshotStateMap<Int, Int>.votedPlayers(): List<Int> {
     val maxVotesValue = values.maxOrNull() ?: 0
@@ -51,16 +51,18 @@ private val firstColumnWidth = 60.dp
 @Composable
 fun LiveVoteWidget(
     modifier: Modifier = Modifier,
-    state: StageAction.Day.Vote,
+    state: LiveStage.Day.Vote,
+    totalVotes: Int,
+    candidates: List<Int>,
     onRepeatSpeech: (votedPlayers: List<Int>) -> Unit = {},
     onFinish: (votedPlayers: List<Int>) -> Unit = {},
 ) {
-    var activeVotesCount by remember { mutableStateOf(state.totalVotes) }
+    var activeVotesCount by remember { mutableStateOf(totalVotes) }
     val votes = remember { mutableStateMapOf<Int, Int>() }
     val votedPlayers by derivedStateOf { votes.votedPlayers() }
     val repeatSpeech by derivedStateOf {
         if (state.reVote)
-            1 < votedPlayers.size && votedPlayers.size < state.candidates.size
+            1 < votedPlayers.size && votedPlayers.size < candidates.size
         else
             1 < votedPlayers.size
     }
@@ -73,15 +75,15 @@ fun LiveVoteWidget(
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            state.candidates.forEach { number ->
+            candidates.forEach { number ->
                 VotesSelectItem(
                     label = number.toString(),
                     votes = votes[number] ?: 0,
-                    totalVotesCount = state.totalVotes,
+                    totalVotesCount = totalVotes,
                     activeVotesCount = activeVotesCount + (votes[number] ?: 0),
                     onVotesSelected = { count ->
                         votes[number] = count
-                        activeVotesCount = state.totalVotes - votes.values.sum()
+                        activeVotesCount = totalVotes - votes.values.sum()
                     }
                 )
             }
@@ -96,7 +98,7 @@ fun LiveVoteWidget(
                     modifier = Modifier.padding(vertical = 4.dp),
                     label = "За",
                     votes = eliminationAgreeCount,
-                    totalVotesCount = state.totalVotes,
+                    totalVotesCount = totalVotes,
                     onVotesSelected = { count -> eliminationAgreeCount = count }
                 )
             }
@@ -108,7 +110,7 @@ fun LiveVoteWidget(
             ) {
                 val votedPlayersValue = votedPlayers.joinToString(separator = ", ") { it.toString() }
                 val acceptDescriptionText = if (isEliminationQuestion) {
-                    if (eliminationAgreeCount > state.totalVotes / 2) {
+                    if (eliminationAgreeCount > totalVotes / 2) {
                         "Покидают игроки $votedPlayersValue"
                     } else {
                         "Все игроки остаются"
@@ -124,7 +126,7 @@ fun LiveVoteWidget(
                     colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
                     onClick = {
                         if (isEliminationQuestion) {
-                            if (eliminationAgreeCount > state.totalVotes / 2) {
+                            if (eliminationAgreeCount > totalVotes / 2) {
                                 onFinish(votedPlayers)
                             } else {
                                 onFinish(emptyList())

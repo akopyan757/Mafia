@@ -21,12 +21,11 @@ import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.components.newGame.NewGameComponent
 import com.cheesecake.mafia.state.GamePlayerRole
-import com.cheesecake.mafia.state.GameStageState
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
 import com.cheesecake.mafia.state.NewGamePlayerItem
 import com.cheesecake.mafia.state.PlayerState
-import com.cheesecake.mafia.state.StageAction
+import com.cheesecake.mafia.state.LiveStage
 import com.cheesecake.mafia.ui.GameStanding
 import com.cheesecake.mafia.ui.custom.IntCounter
 import com.cheesecake.mafia.ui.newGame.widget.NewGameRolesWidget
@@ -54,16 +53,13 @@ fun NewGameStanding(
     onBackPressed: () -> Unit,
     onStartGameClicked: (items: List<NewGamePlayerItem>) -> Unit,
 ) {
-    val items by viewModel.items.collectAsState()
-    val rolesCount by viewModel.rolesCount.collectAsState(emptyList())
-    val availablePlayers by viewModel.availablePlayer.collectAsState()
-    val isItemsFilled by viewModel.isItemsFilled.collectAsState(false)
+    val state by viewModel.state.collectAsState()
 
     Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         NewGameStanding(
             modifier = Modifier.wrapContentSize().padding(top = 8.dp),
-            items = items,
-            availablePlayers = availablePlayers,
+            items = state.items,
+            availablePlayers = state.availablePlayers,
             availableRoles = GamePlayerRole.values(),
             onRoleChanged = { number, role -> viewModel.onRoleChanged(number, role) },
             onPlayerChoose = { number, player -> viewModel.onPlayerChosen(number, player) },
@@ -80,11 +76,11 @@ fun NewGameStanding(
             )
             NewGameRolesWidget(
                 modifier = Modifier.weight(1f).fillMaxHeight(),
-                rolesCounts = rolesCount,
+                rolesCounts = state.rolesCount,
             )
             Button(
                 onClick = { onBackPressed() },
-                enabled = isItemsFilled,
+                enabled = state.isItemsFilled,
             ) {
                 Text(
                     "Назад",
@@ -93,8 +89,8 @@ fun NewGameStanding(
                 )
             }
             Button(
-                onClick = { onStartGameClicked(items) },
-                enabled = isItemsFilled,
+                onClick = { onStartGameClicked(state.items) },
+                enabled = state.isItemsFilled,
             ) {
                 Text(
                     "Начать",
@@ -121,7 +117,8 @@ fun NewGameStanding(
         standingState = GameStandingState(
             id = 0,
             status = GameStatus.NewGame,
-            stage = GameStageState(0, stageAction = StageAction.Start),
+            round = 0,
+            stage = LiveStage.Start,
             isShowRoles = true,
         ),
         itemsCount = items.size,

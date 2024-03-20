@@ -1,5 +1,7 @@
 package com.cheesecake.mafia.state
 
+import com.cheesecake.mafia.viewModel.Item
+
 @kotlinx.serialization.Serializable
 data class PlayerState(
     val id: Int, val name: String
@@ -17,4 +19,6 @@ data class NewGamePlayerItem(
     val number: Int = 0,
     val player: SelectPlayerState = SelectPlayerState.None,
     val role: GamePlayerRole = GamePlayerRole.None,
-)
+): Item<Int> {
+    override val key: Int get() = number
+}
