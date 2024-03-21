@@ -11,6 +11,10 @@ data class GameAction(
 @Serializable
 sealed interface GameActionType {
 
+    data class Dead(val dayType: StageDayType): GameActionType {
+        override fun dayType(): StageDayType = dayType
+    }
+
     @Serializable
     enum class NightActon(val role: GamePlayerRole): GameActionType {
         MafiaKilling(GamePlayerRole.Black.Mafia),

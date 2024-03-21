@@ -3,7 +3,6 @@ package com.cheesecake.mafia.ui.newGame
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,6 +28,7 @@ import com.cheesecake.mafia.state.GameStatus
 import com.cheesecake.mafia.state.NewGamePlayerItem
 import com.cheesecake.mafia.state.PlayerState
 import com.cheesecake.mafia.state.LiveStage
+import com.cheesecake.mafia.state.StageDayType
 import com.cheesecake.mafia.ui.GameStanding
 import com.cheesecake.mafia.ui.custom.IntCounter
 import com.cheesecake.mafia.ui.newGame.widget.NewGameRolesWidget
@@ -131,7 +131,7 @@ fun NewGameStanding(
             id = 0,
             status = GameStatus.NewGame,
             round = 0,
-            stage = LiveStage.Start,
+            dayType = StageDayType.Night,
             isShowRoles = true,
         ),
         itemsCount = items.size,

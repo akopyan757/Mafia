@@ -1,24 +1,20 @@
 package com.cheesecake.mafia.ui.liveGame
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Card
 import androidx.compose.material.Checkbox
 import androidx.compose.material.CheckboxDefaults
 import androidx.compose.material.Icon
@@ -51,6 +47,8 @@ import com.cheesecake.mafia.state.primaryColor
 import com.cheesecake.mafia.state.secondaryColor
 import com.cheesecake.mafia.ui.VerticalDivider
 import com.cheesecake.mafia.ui.activeStageColumnMinWidth
+import com.cheesecake.mafia.ui.custom.ActionHistoryItem
+import com.cheesecake.mafia.ui.custom.GameRoleItem
 import com.cheesecake.mafia.ui.dayStageColumnMinWidth
 import com.cheesecake.mafia.ui.dayStageColumnWeight
 import com.cheesecake.mafia.ui.foulsColumnSize
@@ -120,7 +118,7 @@ fun LiveGameItem(
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
 
-            LiveGameRole(
+            GameRoleItem(
                 modifier = Modifier.width(roleColumnWidth).clip(RoundedCornerShape(8.dp)),
                 role = player.role,
             )
@@ -140,22 +138,28 @@ fun LiveGameItem(
         } else {
             Box(modifier = Modifier.width(foulsColumnSize))
         }
+        val deadAction = player.actions.firstOrNull { it.actionType is GameActionType.Dead }
         val actionsHistory = generateHistory(stage.type, round)
         if (actionsHistory.isNotEmpty()) {
             (0 until actionsHistory.size - 1).forEach { index ->
-                val (stageDayType, dayIndex) = actionsHistory[index]
+                val (dayType, dayRound) = actionsHistory[index]
+                val isAlive = if (deadAction != null) {
+                    dayRound < deadAction.dayIndex || (dayRound == deadAction.dayIndex && deadAction.actionType.dayType().order <= dayType.order)
+                } else true
+                println("\nPlayer: ${player.number}, type: $dayType, round: $dayRound, isAlive: $isAlive")
                 val gameActions = player.actions
-                    .filter { it.actionType.dayType() == stageDayType && it.dayIndex == dayIndex }
+                    .filter { it.actionType.dayType() == dayType && it.dayIndex == dayRound }
                     .map { gameAction -> gameAction.actionType }
-                val historyItemModifier = if (stageDayType == StageDayType.Day) {
+                val historyItemModifier = if (dayType == StageDayType.Day) {
                     Modifier.weight(dayStageColumnWeight).defaultMinSize(minWidth = dayStageColumnMinWidth)
                 } else {
                     Modifier.weight(nightStageColumnWeight).defaultMinSize(minWidth = nightStageColumnMinWidth)
                 }
                 VerticalDivider(color = WhiteLight, modifier = Modifier.align(Alignment.CenterVertically))
-                HistoryItem(
+                ActionHistoryItem(
                     modifier = historyItemModifier,
                     actions = gameActions,
+                    isAlive = isAlive,
                 )
             }
         }
@@ -173,12 +177,13 @@ fun LiveGameItem(
                             modifier = itemModifier,
                             isPutOnVote = isPutOnVote,
                             onPutOnVote = onPutOnVote,
-                            canAddCandidate = stage.canAddCandidate()
+                            canAddCandidate = stage.canAddCandidate(),
                         )
                     } else {
-                        HistoryItem(
+                        ActionHistoryItem(
                             modifier = itemModifier,
                             actions = listOf(GameActionType.NightActon.ClientChoose),
+                            isAlive = player.isAlive,
                         )
                     }
                 } else {
@@ -189,25 +194,8 @@ fun LiveGameItem(
                     )
                 }
             } else {
-                Box(modifier = itemModifier)
+                Box(modifier = itemModifier.background(WhiteLight.copy(alpha = 0.7f)).fillMaxHeight())
             }
-        }
-    }
-}
-
-@Composable
-fun HistoryItem(
-    modifier: Modifier = Modifier,
-    actions: List<GameActionType>,
-) {
-    Row(modifier, horizontalArrangement = Arrangement.Center) {
-        actions.forEach { gameActionType ->
-            Icon(
-                painter = imageResources(gameActionType.iconRes()),
-                modifier = Modifier.size(16.dp),
-                contentDescription = null,
-            )
-            Spacer(Modifier.width(4.dp))
         }
     }
 }
@@ -221,10 +209,9 @@ fun DayActionItem(
 ) {
     Box(modifier) {
         if (canAddCandidate) {
-            val color = if (isPutOnVote) Color.Gray else BlackDark
             Button(
                 onClick = { onPutOnVote() },
-                colors = ButtonDefaults.buttonColors(color),
+                colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
                 enabled = !isPutOnVote,
                 contentPadding = PaddingValues(4.dp),
                 modifier = Modifier.align(Alignment.Center).size(32.dp)
@@ -283,34 +270,6 @@ fun NightActionItem(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun LiveGameRole(
-    modifier: Modifier = Modifier,
-    role: GamePlayerRole = GamePlayerRole.None,
-) {
-    Row(
-        modifier = modifier.background(role.primaryColor()).padding(horizontal = 4.dp),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (role.iconRes.isNotEmpty()) {
-            Icon(
-                painter = imageResources(role.iconRes),
-                contentDescription = null,
-                modifier = Modifier.size(32.dp).padding(start = 16.dp),
-                tint = role.secondaryColor(),
-            )
-        }
-        Text(
-            text = role.name,
-            style = MaterialTheme.typography.body1,
-            textAlign = TextAlign.Center,
-            color = role.secondaryColor(),
-            modifier = Modifier.weight(1f)
-        )
     }
 }
 

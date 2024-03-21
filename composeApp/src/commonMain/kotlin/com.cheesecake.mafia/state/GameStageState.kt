@@ -25,9 +25,9 @@ sealed class LiveStage(val type: StageDayType) {
     }
 }
 
-enum class StageDayType(val value: String) {
-    Day("День"),
-    Night("Ночь")
+enum class StageDayType(val value: String, val order: Int) {
+    Day("День", 1),
+    Night("Ночь", 0)
 }
 
 fun generateHistory(stage: StageDayType, count: Int): List<Pair<StageDayType, Int>> {

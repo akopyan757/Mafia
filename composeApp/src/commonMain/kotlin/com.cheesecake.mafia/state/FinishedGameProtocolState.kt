@@ -20,7 +20,7 @@ data class FinishedGamePlayersState(
     val role: GamePlayerRole = GamePlayerRole.None,
     val isAlive: Boolean = true,
     val isDeleted: Boolean = false,
-    val action: List<GameAction> = emptyList(),
+    val actions: List<GameAction> = emptyList(),
 )
 
 fun buildFinishedProtocol(

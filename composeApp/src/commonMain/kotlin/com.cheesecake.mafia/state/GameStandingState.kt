@@ -5,6 +5,6 @@ data class GameStandingState(
     val status: GameStatus,
     val result: GameFinishResult? = null,
     val round: Int,
-    val stage: LiveStage,
+    val dayType: StageDayType,
     val isShowRoles: Boolean,
 )

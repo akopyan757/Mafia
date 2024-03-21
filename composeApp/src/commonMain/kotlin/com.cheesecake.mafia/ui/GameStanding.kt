@@ -48,7 +48,7 @@ fun GameStanding(
         item {
             HeaderItem(
                 round = standingState.round,
-                stage = standingState.stage,
+                dayType = standingState.dayType,
                 status = standingState.status,
                 isShowRoles = standingState.isShowRoles,
             )
@@ -70,7 +70,7 @@ fun GameStanding(
 fun HeaderItem(
     modifier: Modifier = Modifier,
     round: Int,
-    stage: LiveStage,
+    dayType: StageDayType,
     status: GameStatus,
     isShowRoles: Boolean,
 ) {
@@ -127,9 +127,12 @@ fun HeaderItem(
                 color = White,
             )
         }
-        if (status != GameStatus.NewGame) {
+        if (status == GameStatus.Live) {
             if (isShowRoles) {
-                VerticalDivider(color = White, modifier = Modifier.align(Alignment.CenterVertically))
+                VerticalDivider(
+                    color = White,
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
             }
             Text(
                 text = "Фолы",
@@ -138,29 +141,29 @@ fun HeaderItem(
                 textAlign = TextAlign.Center,
                 color = White,
             )
-            val actionsHistory = generateHistory(stage.type, round)
-            actionsHistory.forEachIndexed { index, (stageType, _) ->
-                VerticalDivider(
-                    color = White,
-                    modifier = Modifier.align(Alignment.CenterVertically)
-                )
-                val modifierColumn = if (stageType == StageDayType.Day) {
-                    Modifier.defaultMinSize(minWidth = dayStageColumnMinWidth)
-                        .weight(dayStageColumnWeight)
-                } else if (index < actionsHistory.size - 1) {
-                    Modifier.defaultMinSize(minWidth = nightStageColumnMinWidth)
-                        .weight(nightStageColumnWeight)
-                } else {
-                    Modifier.width(activeStageColumnMinWidth)
-                }
-                Text(
-                    text = stageType.value + " " + index,
-                    modifier = modifierColumn,
-                    style = MaterialTheme.typography.body1,
-                    textAlign = TextAlign.Center,
-                    color = White,
-                )
+        }
+        val actionsHistory = generateHistory(dayType, round)
+        actionsHistory.forEachIndexed { index, (stageType, _) ->
+            VerticalDivider(
+                color = White,
+                modifier = Modifier.align(Alignment.CenterVertically)
+            )
+            val modifierColumn = if (stageType == StageDayType.Day) {
+                Modifier.defaultMinSize(minWidth = dayStageColumnMinWidth)
+                    .weight(dayStageColumnWeight)
+            } else if (index < actionsHistory.size - 1 || status == GameStatus.Finished) {
+                Modifier.defaultMinSize(minWidth = nightStageColumnMinWidth)
+                    .weight(nightStageColumnWeight)
+            } else {
+                Modifier.width(activeStageColumnMinWidth)
             }
+            Text(
+                text = stageType.value + " " + index,
+                modifier = modifierColumn,
+                style = MaterialTheme.typography.body1,
+                textAlign = TextAlign.Center,
+                color = White,
+            )
         }
     }
 }
@@ -177,92 +180,4 @@ fun VerticalDivider(
             .width(1.dp)
             .background(color)
     )
-}
-
-@Composable
-fun FinishedGameItem(
-    modifier: Modifier = Modifier,
-    player: LivePlayerState,
-    round: Int,
-    stage: LiveStage,
-    position: Int,
-) {
-    val backgroundColor = when (player.role) {
-        is GamePlayerRole.Black -> Red.copy(alpha = 0.25f)
-        is GamePlayerRole.White -> Blue.copy(alpha = 0.25f)
-        is GamePlayerRole.Red -> if (player.role !is GamePlayerRole.Red.Сivilian) {
-            Yellow.copy(alpha = 0.25f)
-        } else {
-            White
-        }
-        GamePlayerRole.None -> White
-    }
-    Row(
-        modifier = modifier.fillMaxWidth().background(backgroundColor)
-    ) {
-        Text(
-            text = position.toString(),
-            modifier = Modifier.padding(8.dp).weight(positionColumnWeight),
-            style = MaterialTheme.typography.h5,
-            textAlign = TextAlign.Center,
-        )
-        VerticalDivider(color = WhiteLight, modifier = Modifier.align(Alignment.CenterVertically))
-        Text(
-            text = player.name,
-            modifier = Modifier.padding(8.dp).weight(nameColumnWeight),
-            style = MaterialTheme.typography.body1,
-        )
-        VerticalDivider(color = WhiteLight, modifier = Modifier.align(Alignment.CenterVertically))
-        Row(
-            modifier = Modifier.weight(roleColumnWeight).padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Spacer(Modifier.weight(1f))
-            Text(
-                text = player.role.name + " ",
-                style = MaterialTheme.typography.body1,
-                modifier = Modifier.padding(end = 4.dp),
-                textAlign = TextAlign.Center,
-            )
-            if (player.role.iconRes.isNotEmpty()) {
-                Image(
-                    painter = imageResources(player.role.iconRes),
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp),
-                )
-            }
-            Spacer(Modifier.weight(1f))
-        }
-        VerticalDivider(color = WhiteLight, modifier = Modifier.align(Alignment.CenterVertically))
-        for ((stageType, _) in generateHistory(stage.type, round)) {
-            val color = if (stageType == StageDayType.Night) {
-                GreyLight.copy(alpha = 0.05f)
-            } else {
-                Color.Transparent
-            }
-            val modifierAction = if (stageType == StageDayType.Day) {
-                Modifier.weight(dayStageColumnWeight)
-                    .defaultMinSize(minWidth = dayStageColumnMinWidth)
-            } else {
-                Modifier.weight(nightStageColumnWeight)
-                    .defaultMinSize(minWidth = nightStageColumnMinWidth)
-            }
-            Row(modifier = modifierAction.background(color)
-            ) {
-                Text(
-                    text = "",
-                    modifier = Modifier.padding(horizontal = 2.dp, vertical = 8.dp),
-                    style = MaterialTheme.typography.body1,
-                    textAlign = TextAlign.Center,
-                )
-            }
-            VerticalDivider(color = WhiteLight, modifier = Modifier.align(Alignment.CenterVertically))
-        }
-        Text(
-            text = player.fouls.toString(),
-            modifier = Modifier.padding(8.dp).width(foulsColumnSize),
-            style = MaterialTheme.typography.body1,
-            textAlign = TextAlign.Center,
-        )
-    }
 }

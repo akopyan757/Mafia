@@ -9,10 +9,12 @@ import com.cheesecake.mafia.state.LiveGameState
 import com.cheesecake.mafia.state.LivePlayerState
 import com.cheesecake.mafia.state.LiveStage
 import com.cheesecake.mafia.state.NewGamePlayerItem
+import com.cheesecake.mafia.state.StageDayType
 import com.cheesecake.mafia.state.buildFinishedProtocol
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.math.round
 
 class LiveGameStandingViewModel(
     players: List<NewGamePlayerItem>,
@@ -156,6 +158,8 @@ class LiveGameStandingViewModel(
                         isAlive = false,
                         actions = player.actions + listOf(
                             GameAction(state.round, GameActionType.DayAction.Voted)
+                        ) + listOf(
+                            GameAction(state.round, GameActionType.Dead(state.stage.type))
                         )
                     )
                 }
@@ -215,9 +219,9 @@ class LiveGameStandingViewModel(
                         isDeleted = true,
                         isClient = false,
                         fouls = 4,
-                        actions = player.actions + listOf(
-                            GameAction(state.round, GameActionType.DayAction.Deleted)
-                        ),
+                        actions = player.actions +
+                            listOf(GameAction(state.round, GameActionType.DayAction.Deleted)) +
+                            listOf(GameAction(state.round, GameActionType.Dead(state.stage.type))),
                     )
                 }
             )
@@ -255,7 +259,9 @@ class LiveGameStandingViewModel(
             if (index != -1) {
                 val player = players[index]
                 players[index] = player.copy(
-                    actions = player.actions + listOf(GameAction(round, nightAction)),
+                    actions = player.actions
+                        + listOf(GameAction(round, nightAction))
+                        + listOf(GameAction(round, GameActionType.Dead(StageDayType.Night))),
                     isClient = player.number == lastClientPlayer,
                     isAlive = player.isAlive && player.number !in lastKilledPlayers,
                 )

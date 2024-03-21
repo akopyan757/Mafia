@@ -282,7 +282,7 @@ fun LiveGameStanding(
             id = 0,
             status = GameStatus.Live,
             round = round,
-            stage = stage,
+            dayType = stage.type,
             isShowRoles = showRoles,
         ),
         itemsCount = players.size,
@@ -390,47 +390,6 @@ fun LiveGameAliveWidget(
 }
 
 @Composable
-fun WinnerAcceptWidget(
-    modifier: Modifier = Modifier,
-    winner: GameFinishResult,
-    onFinishAccepted: () -> Unit,
-) {
-    val text = when (winner) {
-        GameFinishResult.BlackWin -> "Победа мафии"
-        GameFinishResult.RedWin -> "Победа мирного города"
-        GameFinishResult.WhiteWin -> "Победа маньяка"
-    }
-    Card(
-        modifier = modifier.width(200.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.body1,
-                color = BlackDark,
-                textAlign = TextAlign.Center,
-            )
-            Button(
-                colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
-                modifier = Modifier.fillMaxWidth(),
-                onClick = { onFinishAccepted() }
-            ) {
-                Text(
-                    text = "Подтвердить",
-                    style = MaterialTheme.typography.body1,
-                    color = White,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun SpeechStateWidget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
@@ -453,7 +412,6 @@ fun SpeechStateWidget(
         }
     }
 }
-
 
 @Composable
 fun LiveStage.Day.LastVotedSpeech.Widget(
