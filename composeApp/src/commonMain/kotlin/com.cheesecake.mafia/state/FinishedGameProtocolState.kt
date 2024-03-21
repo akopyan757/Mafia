@@ -1,9 +1,13 @@
 package com.cheesecake.mafia.state
 
 import kotlinx.serialization.Serializable
+import kotlin.random.Random
 
 @Serializable
 data class FinishedGameProtocolState(
+    val id: Int,
+    val title: String,
+    val date: String,
     val players: List<FinishedGamePlayersState>,
     val lastRound: Int,
     val lastDayType: StageDayType,
@@ -23,21 +27,23 @@ data class FinishedGamePlayersState(
     val actions: List<GameAction> = emptyList(),
 )
 
-fun buildFinishedProtocol(
+fun buildProtocol(
+    startGameData: StartGameData,
     liveGameState: LiveGameState,
     history: List<HistoryItem>,
     finishResult: GameFinishResult,
     totalTime: Int,
-): FinishedGameProtocolState {
-    return FinishedGameProtocolState(
-        liveGameState.players.map { it.toFinishedGamePlayer() },
-        liveGameState.round,
-        liveGameState.stage.type,
-        history,
-        finishResult,
-        totalTime,
-    )
-}
+) = FinishedGameProtocolState(
+    id = Random(value.hashCode()).nextInt(),
+    title = startGameData.title,
+    date = startGameData.date,
+    players = liveGameState.players.map { it.toFinishedGamePlayer() },
+    lastRound = liveGameState.round,
+    lastDayType = liveGameState.stage.type,
+    history = history,
+    finishResult = finishResult,
+    totalTime = totalTime,
+)
 
 fun LivePlayerState.toFinishedGamePlayer(): FinishedGamePlayersState {
     return FinishedGamePlayersState(

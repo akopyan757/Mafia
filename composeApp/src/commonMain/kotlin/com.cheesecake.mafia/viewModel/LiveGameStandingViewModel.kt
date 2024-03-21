@@ -10,12 +10,11 @@ import com.cheesecake.mafia.state.LivePlayerState
 import com.cheesecake.mafia.state.LiveStage
 import com.cheesecake.mafia.state.StageDayType
 import com.cheesecake.mafia.state.StartGameData
-import com.cheesecake.mafia.state.buildFinishedProtocol
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class LiveGameStandingViewModel(data: StartGameData): ViewModel() {
+class LiveGameStandingViewModel(val startGameData: StartGameData): ViewModel() {
 
     companion object {
         const val HISTORY_SIZE = 5
@@ -34,7 +33,7 @@ class LiveGameStandingViewModel(data: StartGameData): ViewModel() {
     val gameActive: StateFlow<Boolean> get() = _gameActive
 
     init {
-        val startPlayers = data.items.map { item ->
+        val startPlayers = startGameData.items.map { item ->
             LivePlayerState(item.player.id, item.number, item.player.name, item.role)
         }
         val alivePlayers = startPlayers.filter { it.isAlive }
@@ -77,7 +76,8 @@ class LiveGameStandingViewModel(data: StartGameData): ViewModel() {
     }
 
     fun buildFinishedProtocol(time: Int, winner: GameFinishResult): FinishedGameProtocolState? {
-        return buildFinishedProtocol(
+        return com.cheesecake.mafia.state.buildProtocol(
+            startGameData = startGameData,
             liveGameState = _state.value,
             history = _history.value,
             finishResult = winner,
