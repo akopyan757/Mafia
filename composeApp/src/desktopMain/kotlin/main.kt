@@ -11,10 +11,15 @@ import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.jetbrains.lifecycle.LifecycleController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.cheesecake.mafia.components.root.DefaultRootComponent
+import com.cheesecake.mafia.di.databaseModule
+import com.cheesecake.mafia.di.repositoryModule
+import com.cheesecake.mafia.di.viewModelModule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.runBlocking
+import org.koin.compose.KoinApplication
+import org.koin.core.context.loadKoinModules
 
 @OptIn(ExperimentalDecomposeApi::class)
 fun main() {
@@ -25,28 +30,32 @@ fun main() {
             componentContext = DefaultComponentContext(lifecycle = lifecycle),
         )
     }
+
     application {
         val windowState = rememberWindowState()
-
         LifecycleController(lifecycle, windowState)
-
         val windowFocusRequestSharedFlow = remember { MutableSharedFlow<WindowType>() }
-        WindowType.entries.forEach { windowType ->
-            key(windowType) {
-                Window(
-                    onCloseRequest = ::exitApplication,
-                    state = windowState,
-                    title = "Mafia"
-                ) {
-                    LaunchedEffect(Unit) {
-                        windowFocusRequestSharedFlow
-                            .filter { it == windowType }
-                            .collect {
-                                window.toFront()
-                            }
-                    }
 
-                    App(component = root)
+        KoinApplication(application = {
+            modules(databaseModule(), repositoryModule(), viewModelModule())
+        }) {
+            WindowType.entries.forEach { windowType ->
+                key(windowType) {
+                    Window(
+                        onCloseRequest = ::exitApplication,
+                        state = windowState,
+                        title = "Mafia"
+                    ) {
+                        LaunchedEffect(Unit) {
+                            windowFocusRequestSharedFlow
+                                .filter { it == windowType }
+                                .collect {
+                                    window.toFront()
+                                }
+                        }
+
+                        App(component = root)
+                    }
                 }
             }
         }

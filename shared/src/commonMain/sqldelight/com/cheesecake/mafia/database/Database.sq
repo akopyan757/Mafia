@@ -1,0 +1,14 @@
+---TABLE
+CREATE TABLE IF NOT EXISTS `player`(
+    `id` INTEGER PRIMARY KEY NOT NULL,
+    `name` TEXT NOT NULL
+);
+
+entries:
+SELECT * FROM `player` ORDER BY name ASC;
+
+insert:
+INSERT INTO `player`(id, name) VALUES (?, ?);
+
+deleteAll:
+DELETE FROM `player`;

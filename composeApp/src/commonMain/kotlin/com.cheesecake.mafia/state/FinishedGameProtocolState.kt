@@ -14,7 +14,7 @@ data class FinishedGameProtocolState(
 
 @Serializable
 data class FinishedGamePlayersState(
-    val playerId: Int,
+    val playerId: Long,
     val number: Int = 1,
     val name: String = "",
     val role: GamePlayerRole = GamePlayerRole.None,

@@ -67,15 +67,14 @@ import com.cheesecake.mafia.ui.playerSpeechTimeSeconds
 import com.cheesecake.mafia.viewModel.LiveGameStandingViewModel
 import dev.icerock.moko.mvvm.compose.getViewModel
 import dev.icerock.moko.mvvm.compose.viewModelFactory
+import org.koin.compose.koinInject
+import org.koin.core.parameter.parametersOf
 
 
 @Composable
 fun LiveGameScreen(component: LiveGameComponent) {
     val players by component.model.subscribeAsState()
-    val viewModel = getViewModel(
-        key = "live-standing",
-        factory = viewModelFactory { LiveGameStandingViewModel(players.model) }
-    )
+    val viewModel = koinInject<LiveGameStandingViewModel> { parametersOf(players.model) }
     LiveGameScreen(viewModel, onFinishGame = component::onFinishGameClicked)
 }
 

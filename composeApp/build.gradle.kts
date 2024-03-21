@@ -1,6 +1,5 @@
 import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -33,11 +32,14 @@ kotlin {
 
     sourceSets {
         val desktopMain by getting
-        
+
+        iosMain.dependencies {
+        }
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
-        }
+            implementation("io.insert-koin:koin-android:3.2.0")
+         }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -59,6 +61,9 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
         }
         desktopMain.dependencies {
+            implementation("app.cash.sqldelight:sqlite-driver:2.0.0")
+            implementation("io.insert-koin:koin-core-jvm:3.5.3")
+            implementation("io.insert-koin:koin-compose-jvm:1.1.2")
             implementation(libs.koin.core.jvm)
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)

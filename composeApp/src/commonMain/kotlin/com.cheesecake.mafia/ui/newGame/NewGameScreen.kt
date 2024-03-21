@@ -35,13 +35,11 @@ import com.cheesecake.mafia.ui.newGame.widget.NewGameRolesWidget
 import com.cheesecake.mafia.viewModel.NewGameStandingViewModel
 import dev.icerock.moko.mvvm.compose.getViewModel
 import dev.icerock.moko.mvvm.compose.viewModelFactory
+import org.koin.compose.koinInject
 
 @Composable
 fun NewGameScreen(component: NewGameComponent) {
-    val viewModel = getViewModel(
-        key = "new-standing",
-        factory = viewModelFactory { NewGameStandingViewModel() }
-    )
+    val viewModel: NewGameStandingViewModel = koinInject()
 
     NewGameStanding(
         viewModel = viewModel,
@@ -92,7 +90,10 @@ fun NewGameStanding(
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
-                    onClick = { onStartGameClicked(state.items) },
+                    onClick = {
+                        viewModel.saveNewPlayers()
+                        onStartGameClicked(state.items)
+                    },
                     enabled = state.isItemsFilled,
                 ) {
                     Text(

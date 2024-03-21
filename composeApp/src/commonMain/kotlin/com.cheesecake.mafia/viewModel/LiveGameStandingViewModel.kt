@@ -157,9 +157,8 @@ class LiveGameStandingViewModel(
                     player.copy(
                         isAlive = false,
                         actions = player.actions + listOf(
-                            GameAction(state.round, GameActionType.DayAction.Voted)
-                        ) + listOf(
-                            GameAction(state.round, GameActionType.Dead(state.stage.type))
+                            GameAction(state.round, GameActionType.DayAction.Voted),
+                            GameAction(state.round + 1, GameActionType.Dead(StageDayType.Day))
                         )
                     )
                 }
@@ -256,12 +255,13 @@ class LiveGameStandingViewModel(
         val players = players.toMutableList()
         nightActions.forEach { (nightAction, number) ->
             val index = players.indexOfFirst { it.number == number }
+            val isKilled = number in lastKilledPlayers
             if (index != -1) {
                 val player = players[index]
                 players[index] = player.copy(
                     actions = player.actions
-                        + listOf(GameAction(round, nightAction))
-                        + listOf(GameAction(round, GameActionType.Dead(StageDayType.Night))),
+                        + listOf(GameAction(round, nightAction)) +
+                        if (isKilled) listOf(GameAction(round, GameActionType.Dead(StageDayType.Night))) else emptyList(),
                     isClient = player.number == lastClientPlayer,
                     isAlive = player.isAlive && player.number !in lastKilledPlayers,
                 )

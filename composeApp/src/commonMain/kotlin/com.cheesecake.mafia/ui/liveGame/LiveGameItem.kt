@@ -138,14 +138,14 @@ fun LiveGameItem(
         } else {
             Box(modifier = Modifier.width(foulsColumnSize))
         }
-        val deadAction = player.actions.firstOrNull { it.actionType is GameActionType.Dead }
         val actionsHistory = generateHistory(stage.type, round)
+        val deadAction = player.actions.firstOrNull { it.actionType is GameActionType.Dead }
+        val notAliveValue = deadAction?.let { it.dayIndex * 2 + it.actionType.dayType().order } ?: Int.MAX_VALUE
         if (actionsHistory.isNotEmpty()) {
             (0 until actionsHistory.size - 1).forEach { index ->
                 val (dayType, dayRound) = actionsHistory[index]
-                val isAlive = if (deadAction != null) {
-                    dayRound < deadAction.dayIndex || (dayRound == deadAction.dayIndex && deadAction.actionType.dayType().order <= dayType.order)
-                } else true
+                val aliveValue = dayRound * 2 + dayType.order
+                val isAlive = aliveValue <= notAliveValue
                 println("\nPlayer: ${player.number}, type: $dayType, round: $dayRound, isAlive: $isAlive")
                 val gameActions = player.actions
                     .filter { it.actionType.dayType() == dayType && it.dayIndex == dayRound }

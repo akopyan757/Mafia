@@ -15,9 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.White
@@ -28,14 +26,14 @@ import com.cheesecake.mafia.state.StageDayType
 import com.cheesecake.mafia.state.generateHistory
 import com.cheesecake.mafia.ui.VerticalDivider
 import com.cheesecake.mafia.ui.custom.ActionHistoryItem
+import com.cheesecake.mafia.ui.custom.GameRoleItem
 import com.cheesecake.mafia.ui.dayStageColumnMinWidth
 import com.cheesecake.mafia.ui.dayStageColumnWeight
-import com.cheesecake.mafia.ui.custom.GameRoleItem
 import com.cheesecake.mafia.ui.nameColumnWidth
 import com.cheesecake.mafia.ui.nightStageColumnMinWidth
+import com.cheesecake.mafia.ui.nightStageColumnWeight
 import com.cheesecake.mafia.ui.positionColumnWidth
 import com.cheesecake.mafia.ui.roleColumnWidth
-import com.cheesecake.mafia.ui.nightStageColumnWeight
 
 @Composable
 fun FinishedGameItem(
@@ -62,14 +60,8 @@ fun FinishedGameItem(
             Text(
                 modifier = Modifier.padding(start = 8.dp).align(Alignment.CenterStart),
                 text = player.name,
-                style = MaterialTheme.typography.body1.let {
-                    if (!player.isAlive) it.copy(textDecoration = TextDecoration.LineThrough) else it
-                },
-                color = if (player.isAlive) {
-                    BlackDark
-                } else {
-                    Color.Gray.copy(alpha = 0.5f)
-                }
+                style = MaterialTheme.typography.body1,
+                color = BlackDark,
             )
         }
 
@@ -89,12 +81,10 @@ fun FinishedGameItem(
         )
 
         val notAliveAction = player.actions.firstOrNull { it.actionType is GameActionType.Dead }
+        val notAliveValue = notAliveAction?.let { it.dayIndex * 2 + it.actionType.dayType().order } ?: Int.MAX_VALUE
         generateHistory(lastDayType, lastRound).forEach { (dayType, dayIndex) ->
-            val isAlive = if (notAliveAction != null) {
-                dayIndex < notAliveAction.dayIndex ||
-                    (dayIndex == notAliveAction.dayIndex &&
-                     notAliveAction.actionType.dayType().order <= dayType.order)
-            } else true
+            val aliveValue = dayIndex * 2 + dayType.order
+            val isAlive = aliveValue <= notAliveValue
             val gameActions = player.actions
                 .filter { it.actionType.dayType() == dayType && it.dayIndex == dayIndex }
                 .map { gameAction -> gameAction.actionType }
@@ -107,7 +97,7 @@ fun FinishedGameItem(
             ActionHistoryItem(
                 modifier = historyItemModifier,
                 actions = gameActions,
-                isAlive = isAlive,
+                isAlive = player.isAlive || isAlive,
             )
         }
     }

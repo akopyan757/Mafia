@@ -3,7 +3,7 @@ package com.cheesecake.mafia.state
 import com.cheesecake.mafia.viewModel.Item
 
 data class LivePlayerState(
-    val playerId: Int,
+    val playerId: Long,
     val number: Int = 1,
     val name: String = "",
     val role: GamePlayerRole = GamePlayerRole.None,

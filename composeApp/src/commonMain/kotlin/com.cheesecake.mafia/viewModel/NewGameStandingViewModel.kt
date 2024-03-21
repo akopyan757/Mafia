@@ -1,52 +1,57 @@
 package com.cheesecake.mafia.viewModel
 
+import com.cheesecake.mafia.entities.PlayerData
+import com.cheesecake.mafia.repository.PlayerRepository
 import com.cheesecake.mafia.state.GamePlayerRole
 import com.cheesecake.mafia.state.NewGamePlayerItem
+import com.cheesecake.mafia.state.NewGameState
 import com.cheesecake.mafia.state.PlayerState
 import com.cheesecake.mafia.state.SelectPlayerState
-import com.cheesecake.mafia.state.priority
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlin.random.Random
 
-data class NewGameState(
-    val items: List<NewGamePlayerItem> = emptyList(),
-    val totalPlayers: List<PlayerState> = emptyList(),
-    val availablePlayers: List<PlayerState> = emptyList(),
-) {
-    val isItemsFilled : Boolean
-        get() = items.all { it.role != GamePlayerRole.None && it.player != SelectPlayerState.None }
-
-    val rolesCount: List<Pair<GamePlayerRole, Int>>
-        get() = items
-            .groupBy { it.role }
-            .map { (role, items) -> role to items.size }
-            .filterNot { (role, count) -> count == 0 || role == GamePlayerRole.None }
-            .sortedByDescending { (role, count) -> role.priority() * 100 + count  }
-}
-
-class NewGameStandingViewModel: ViewModel() {
+class NewGameStandingViewModel(
+    private val repository: PlayerRepository
+): ViewModel() {
 
     private val _state = MutableStateFlow(NewGameState())
     val state: StateFlow<NewGameState> get() = _state
 
+
     init {
+        val existPlayers = repository.selectAll().map { PlayerState(it.id, it.name) }
+        print("\nPlayer start")
+        existPlayers.forEachIndexed { index, player ->
+            print("\nPlayer: $index. $player")
+        }
         _state.value = NewGameState(
-            items = listOf(
-                NewGamePlayerItem(1, SelectPlayerState.New("AAA"), GamePlayerRole.Black.Mafia),
-                NewGamePlayerItem(2, SelectPlayerState.New("BBB"), GamePlayerRole.Black.Mafia),
-                NewGamePlayerItem(3, SelectPlayerState.New("CCC"), GamePlayerRole.Black.Don),
-                NewGamePlayerItem(4, SelectPlayerState.New("DDD"), GamePlayerRole.White.Maniac),
-                NewGamePlayerItem(5, SelectPlayerState.New("EEE"), GamePlayerRole.Red.Сivilian),
-                NewGamePlayerItem(6, SelectPlayerState.New("FFF"), GamePlayerRole.Red.Сivilian),
-                NewGamePlayerItem(7, SelectPlayerState.New("HHH"), GamePlayerRole.Red.Сivilian),
-                NewGamePlayerItem(8, SelectPlayerState.New("III"), GamePlayerRole.Red.Doctor),
-                NewGamePlayerItem(9, SelectPlayerState.New("JJJ"), GamePlayerRole.Red.Sheriff),
-                NewGamePlayerItem(10, SelectPlayerState.New("KKK"), GamePlayerRole.Red.Whore),
-            ),
-            totalPlayers = players,
-            availablePlayers = players,
+            items = List(10) { index ->
+                NewGamePlayerItem(index + 1, SelectPlayerState.None, GamePlayerRole.None)
+            },
+            totalPlayers = existPlayers,
+            availablePlayers = existPlayers,
         )
+    }
+
+    fun saveNewPlayers() {
+        val newPlayers = _state.value.items.mapNotNull { it.player as? SelectPlayerState.New }
+        viewModelScope.launch {
+            repository.insert(
+                newPlayers.map {
+                    PlayerData(
+                        Random(it.hashCode()).nextLong(),
+                        name = it.value
+                    )
+                }
+            )
+            print("\nPlayer2 updated")
+            repository.selectAll().forEachIndexed { index, playerData ->
+                print("\nPlayer2: $index. $playerData")
+            }
+        }
     }
 
     fun onPlayerCountsChanged(count: Int) {
@@ -76,9 +81,9 @@ class NewGameStandingViewModel: ViewModel() {
                 items = state.items.changeItem(number) { item ->
                     item.copy(player = SelectPlayerState.Exist(playerState))
                 }
-            ).copy(
-                availablePlayers = state.getAvailablePlayers()
-            )
+            ).let {
+                it.copy(availablePlayers = it.getAvailablePlayers())
+            }
         }
     }
 
@@ -93,9 +98,9 @@ class NewGameStandingViewModel: ViewModel() {
                     }
                     player.copy(player = playerState)
                 },
-            ).copy(
-                availablePlayers = state.getAvailablePlayers(),
-            )
+            ).let {
+                it.copy(availablePlayers = it.getAvailablePlayers())
+            }
         }
     }
 
@@ -118,20 +123,5 @@ class NewGameStandingViewModel: ViewModel() {
         val index = players.indexOfFirst { it.number == number }
         if (index != -1) players[index] = transform(players[index])
         return players.toList()
-    }
-
-    companion object {
-        private val players = listOf(
-            PlayerState(1, "Albert"),
-            PlayerState(2, "Bob"),
-            PlayerState(3, "Claus"),
-            PlayerState(4, "Dona"),
-            PlayerState(5, "Elena"),
-            PlayerState(6, "Frank"),
-            PlayerState(7, "Gina"),
-            PlayerState(8, "Hope"),
-            PlayerState(9, "Iran"),
-            PlayerState(10, "Jakie"),
-        )
     }
 }
