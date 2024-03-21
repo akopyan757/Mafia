@@ -18,6 +18,7 @@ import com.cheesecake.mafia.components.main.MainComponent
 import com.cheesecake.mafia.components.newGame.DefaultNewGameComponent
 import com.cheesecake.mafia.components.newGame.NewGameComponent
 import com.cheesecake.mafia.state.FinishedGameProtocolState
+import com.cheesecake.mafia.state.StartGameData
 import kotlinx.serialization.Serializable
 
 class DefaultRootComponent(
@@ -37,19 +38,17 @@ class DefaultRootComponent(
 
     private fun child(config: Config, childComponentContext: ComponentContext): RootComponent.Child {
         return when (config) {
-            is Config.Main -> RootComponent.Child.Main(mainComponent(childComponentContext))
-            is Config.NewGame -> RootComponent.Child.NewGame(newGameComponent(childComponentContext))
+            is Config.Main -> {
+                RootComponent.Child.Main(mainComponent(childComponentContext))
+            }
+            is Config.NewGame -> {
+                RootComponent.Child.NewGame(newGameComponent(childComponentContext))
+            }
             is Config.LiveGame -> RootComponent.Child.LiveGame(
-                liveGameComponent(
-                    childComponentContext,
-                    config.players
-                )
+                liveGameComponent(childComponentContext, config.data)
             )
             is Config.FinishedGame -> RootComponent.Child.FinishedGame(
-                finishedGameComponent(
-                    childComponentContext,
-                    config.protocol
-                )
+                finishedGameComponent(childComponentContext, config.protocol)
             )
         }
     }
@@ -63,14 +62,19 @@ class DefaultRootComponent(
     private fun newGameComponent(componentContext: ComponentContext): NewGameComponent =
         DefaultNewGameComponent(
             componentContext = componentContext,
-            onStartNewGame = { navigation.push(Config.LiveGame(it)) },
+            onStartNewGame = {
+                navigation.push(Config.LiveGame(it))
+            },
             onBackPressed = { navigation.pop() },
         )
 
-    private fun liveGameComponent(componentContext: ComponentContext, players: List<NewGamePlayerItem>): LiveGameComponent =
+    private fun liveGameComponent(
+        componentContext: ComponentContext,
+        data: StartGameData,
+    ): LiveGameComponent =
         DefaultLiveGameComponent(
             componentContext = componentContext,
-            players = players,
+            data = data,
             onFinishGame = { protocol ->
                 navigation.popTo(0)
                 navigation.push(Config.FinishedGame(protocol))
@@ -100,7 +104,7 @@ class DefaultRootComponent(
         data object NewGame : Config()
 
         @Serializable
-        data class LiveGame(val players: List<NewGamePlayerItem>) : Config()
+        data class LiveGame(val data: StartGameData) : Config()
 
         @Serializable
         data class FinishedGame(val protocol: FinishedGameProtocolState) : Config()

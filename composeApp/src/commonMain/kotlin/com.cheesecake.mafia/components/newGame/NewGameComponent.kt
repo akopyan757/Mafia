@@ -1,8 +1,8 @@
 package com.cheesecake.mafia.components.newGame
 
-import com.cheesecake.mafia.state.NewGamePlayerItem
+import com.cheesecake.mafia.state.StartGameData
 
 interface NewGameComponent {
     fun onBackClicked()
-    fun onStartGameClicked(items: List<NewGamePlayerItem>) {}
+    fun onStartGameClicked(data: StartGameData) {}
 }

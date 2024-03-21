@@ -2,10 +2,11 @@ package com.cheesecake.mafia.components.newGame
 
 import com.arkivanov.decompose.ComponentContext
 import com.cheesecake.mafia.state.NewGamePlayerItem
+import com.cheesecake.mafia.state.StartGameData
 
 class DefaultNewGameComponent(
     componentContext: ComponentContext,
-    private val onStartNewGame: (items: List<NewGamePlayerItem>) -> Unit = {},
+    private val onStartNewGame: (StartGameData) -> Unit = {},
     private val onBackPressed: () -> Unit = {},
 ): NewGameComponent, ComponentContext by componentContext {
 
@@ -13,7 +14,7 @@ class DefaultNewGameComponent(
         onBackPressed()
     }
 
-    override fun onStartGameClicked(items: List<NewGamePlayerItem>) {
-        onStartNewGame(items)
+    override fun onStartGameClicked(data: StartGameData) {
+        onStartNewGame(data)
     }
 }

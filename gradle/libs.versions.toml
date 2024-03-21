@@ -24,6 +24,8 @@ ktor = "2.3.7"
 logback = "1.4.14"
 lifecycleViewmodelCompose = "2.7.0"
 sqldelight = "2.0.1"
+protoliteWellKnownTypes = "18.0.0"
+coreI18n = "1.0.0-alpha01"
 
 [libraries]
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
@@ -56,6 +58,8 @@ sqldelight-android = { module = "app.cash.sqldelight:android-driver", version.re
 sqldelight-ios = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
 sqldelight-desktop = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
 sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+protolite-well-known-types = { group = "com.google.firebase", name = "protolite-well-known-types", version.ref = "protoliteWellKnownTypes" }
+androidx-core-i18n = { group = "androidx.core", name = "core-i18n", version.ref = "coreI18n" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

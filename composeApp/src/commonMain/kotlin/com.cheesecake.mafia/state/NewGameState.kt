@@ -1,10 +1,17 @@
 package com.cheesecake.mafia.state
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class NewGameState(
+    val date: String = "",
+    val title: String = "",
     val items: List<NewGamePlayerItem> = emptyList(),
     val totalPlayers: List<PlayerState> = emptyList(),
     val availablePlayers: List<PlayerState> = emptyList(),
 ) {
+    fun toStartData() = StartGameData(items, date, title)
+
     val isItemsFilled : Boolean
         get() = items.all { it.role != GamePlayerRole.None && it.player != SelectPlayerState.None }
 

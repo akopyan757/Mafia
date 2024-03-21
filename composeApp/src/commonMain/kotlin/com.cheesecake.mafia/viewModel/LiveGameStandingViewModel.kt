@@ -8,17 +8,14 @@ import com.cheesecake.mafia.state.HistoryItem
 import com.cheesecake.mafia.state.LiveGameState
 import com.cheesecake.mafia.state.LivePlayerState
 import com.cheesecake.mafia.state.LiveStage
-import com.cheesecake.mafia.state.NewGamePlayerItem
 import com.cheesecake.mafia.state.StageDayType
+import com.cheesecake.mafia.state.StartGameData
 import com.cheesecake.mafia.state.buildFinishedProtocol
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlin.math.round
 
-class LiveGameStandingViewModel(
-    players: List<NewGamePlayerItem>,
-): ViewModel() {
+class LiveGameStandingViewModel(data: StartGameData): ViewModel() {
 
     companion object {
         const val HISTORY_SIZE = 5
@@ -37,7 +34,7 @@ class LiveGameStandingViewModel(
     val gameActive: StateFlow<Boolean> get() = _gameActive
 
     init {
-        val startPlayers = players.map { item ->
+        val startPlayers = data.items.map { item ->
             LivePlayerState(item.player.id, item.number, item.player.name, item.role)
         }
         val alivePlayers = startPlayers.filter { it.isAlive }

@@ -48,13 +48,15 @@ kotlin {
             implementation(libs.koin.core)
             implementation(libs.koin.compose)
             implementation(libs.decompose)
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
             implementation("com.arkivanov.decompose:extensions-compose-jetbrains:2.2.2-compose-experimental")
             implementation("dev.icerock.moko:mvvm-core:0.16.1")
             implementation("dev.icerock.moko:mvvm-flow:0.16.1")
             implementation("dev.icerock.moko:mvvm-compose:0.16.1")
             implementation("dev.icerock.moko:mvvm-flow-compose:0.16.1")
             implementation("dev.icerock.moko:mvvm-state:0.16.1")
+            implementation("org.jetbrains.compose.material3:material3:1.6.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
             @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
             implementation(projects.shared)
@@ -128,4 +130,6 @@ compose.experimental {
 dependencies {
     implementation(project(":composeApp"))
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.protolite.well.known.types)
+    implementation(libs.androidx.core.i18n)
 }

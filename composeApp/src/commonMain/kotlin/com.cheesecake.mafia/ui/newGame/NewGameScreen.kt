@@ -1,6 +1,7 @@
 package com.cheesecake.mafia.ui.newGame
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,7 +13,9 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,14 +30,13 @@ import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
 import com.cheesecake.mafia.state.NewGamePlayerItem
 import com.cheesecake.mafia.state.PlayerState
-import com.cheesecake.mafia.state.LiveStage
 import com.cheesecake.mafia.state.StageDayType
+import com.cheesecake.mafia.state.StartGameData
 import com.cheesecake.mafia.ui.GameStanding
+import com.cheesecake.mafia.ui.custom.DateSelectorTextField
 import com.cheesecake.mafia.ui.custom.IntCounter
 import com.cheesecake.mafia.ui.newGame.widget.NewGameRolesWidget
 import com.cheesecake.mafia.viewModel.NewGameStandingViewModel
-import dev.icerock.moko.mvvm.compose.getViewModel
-import dev.icerock.moko.mvvm.compose.viewModelFactory
 import org.koin.compose.koinInject
 
 @Composable
@@ -52,69 +54,88 @@ fun NewGameScreen(component: NewGameComponent) {
 fun NewGameStanding(
     viewModel: NewGameStandingViewModel,
     onBackPressed: () -> Unit,
-    onStartGameClicked: (items: List<NewGamePlayerItem>) -> Unit,
+    onStartGameClicked: (date: StartGameData) -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
 
-    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-        ) {
-            NewGamePlayerCount(
-                modifier = Modifier.wrapContentHeight(),
-                startValue = 10,
-                onValueChanged = { viewModel.onPlayerCountsChanged(it) }
-            )
-            NewGameRolesWidget(
-                modifier = Modifier.wrapContentHeight(),
-                rolesCounts = state.rolesCount,
-            )
-            Column(
-                modifier = Modifier.width(100.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+    Box {
+        Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
-                    onClick = { onBackPressed() },
-                    enabled = state.isItemsFilled,
-                ) {
-                    Text(
-                        text = "Назад",
-                        style = MaterialTheme.typography.body1,
-                        color = White,
+                Column (Modifier.width(170.dp)){
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                        onClick = { onBackPressed() },
+                    ) {
+                        Text(
+                            text = "Назад",
+                            style = MaterialTheme.typography.body1,
+                            color = White,
+                        )
+                    }
+                    OutlinedTextField(
+                        value = state.title,
+                        label = { Text("Название") },
+                        onValueChange = { viewModel.changeTitleValue(it) },
+                        singleLine = true,
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            focusedBorderColor = BlackDark,
+                            unfocusedBorderColor = BlackDark,
+                            focusedLabelColor = BlackDark,
+                            unfocusedLabelColor = BlackDark,
+                        ),
                     )
+                    DateSelectorTextField(modifier = Modifier.fillMaxWidth()) { value ->
+                        viewModel.changeDate(value)
+                    }
                 }
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
-                    onClick = {
-                        viewModel.saveNewPlayers()
-                        onStartGameClicked(state.items)
-                    },
-                    enabled = state.isItemsFilled,
+                Column(
+                    modifier = Modifier.width(170.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
-                        text = "Начать",
-                        style = MaterialTheme.typography.body1,
-                        color = White,
+                    NewGamePlayerCount(
+                        modifier = Modifier.fillMaxWidth(),
+                        startValue = 10,
+                        onValueChanged = { viewModel.onPlayerCountsChanged(it) }
                     )
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                        onClick = {
+                            viewModel.saveNewPlayers()
+                            onStartGameClicked(state.toStartData())
+                        },
+                        enabled = state.isItemsFilled,
+                    ) {
+                        Text(
+                            text = "Начать",
+                            style = MaterialTheme.typography.body1,
+                            color = White,
+                        )
+                    }
                 }
+                NewGameRolesWidget(
+                    modifier = Modifier.wrapContentHeight(),
+                    rolesCounts = state.rolesCount,
+                )
             }
+            NewGameStanding(
+                modifier = Modifier.wrapContentSize().padding(top = 8.dp),
+                items = state.items,
+                availablePlayers = state.availablePlayers,
+                availableRoles = GamePlayerRole.values(),
+                onRoleChanged = { number, role -> viewModel.onRoleChanged(number, role) },
+                onPlayerChoose = { number, player -> viewModel.onPlayerChosen(number, player) },
+                onNewPlayerChosen = { number, name -> viewModel.onNewPlayerNameChanged(number, name) },
+            )
         }
-        NewGameStanding(
-            modifier = Modifier.wrapContentSize().padding(top = 8.dp),
-            items = state.items,
-            availablePlayers = state.availablePlayers,
-            availableRoles = GamePlayerRole.values(),
-            onRoleChanged = { number, role -> viewModel.onRoleChanged(number, role) },
-            onPlayerChoose = { number, player -> viewModel.onPlayerChosen(number, player) },
-            onNewPlayerChosen = { number, name -> viewModel.onNewPlayerNameChanged(number, name) },
-        )
     }
 }
+
 
 @Composable
 fun NewGameStanding(

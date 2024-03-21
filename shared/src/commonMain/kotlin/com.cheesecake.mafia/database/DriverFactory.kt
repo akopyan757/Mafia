@@ -11,8 +11,3 @@ interface IDriverFactory {
 expect class DriverFactory: IDriverFactory {
   override fun createDriver(schema: SqlSchema<QueryResult.AsyncValue<Unit>>): SqlDriver
 }
-
-fun createDatabase(driverFactory: DriverFactory): Database {
-  val driver = driverFactory.createDriver(Database.Schema)
-  return Database(driver)
-}

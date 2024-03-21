@@ -74,7 +74,7 @@ import org.koin.core.parameter.parametersOf
 @Composable
 fun LiveGameScreen(component: LiveGameComponent) {
     val players by component.model.subscribeAsState()
-    val viewModel = koinInject<LiveGameStandingViewModel> { parametersOf(players.model) }
+    val viewModel = koinInject<LiveGameStandingViewModel> { parametersOf(players.data) }
     LiveGameScreen(viewModel, onFinishGame = component::onFinishGameClicked)
 }
 

@@ -17,18 +17,18 @@ class NewGameStandingViewModel(
     private val repository: PlayerRepository
 ): ViewModel() {
 
+    companion object {
+        private const val DEFAULT_GAME_COUNT = 10
+    }
+
     private val _state = MutableStateFlow(NewGameState())
     val state: StateFlow<NewGameState> get() = _state
 
-
     init {
         val existPlayers = repository.selectAll().map { PlayerState(it.id, it.name) }
-        print("\nPlayer start")
-        existPlayers.forEachIndexed { index, player ->
-            print("\nPlayer: $index. $player")
-        }
         _state.value = NewGameState(
-            items = List(10) { index ->
+            title = "Игра",
+            items = List(DEFAULT_GAME_COUNT) { index ->
                 NewGamePlayerItem(index + 1, SelectPlayerState.None, GamePlayerRole.None)
             },
             totalPlayers = existPlayers,
@@ -36,21 +36,20 @@ class NewGameStandingViewModel(
         )
     }
 
+    fun changeTitleValue(title: String) {
+        _state.value = _state.value.copy(title = title)
+    }
+
+    fun changeDate(value: String) {
+        _state.value = _state.value.copy(date = value)
+    }
+
     fun saveNewPlayers() {
-        val newPlayers = _state.value.items.mapNotNull { it.player as? SelectPlayerState.New }
+        val newPlayers = _state.value.items
+            .mapNotNull { (it.player as? SelectPlayerState.New)?.value }
+            .map { value -> PlayerData(Random(value.hashCode()).nextInt().toLong(), name = value) }
         viewModelScope.launch {
-            repository.insert(
-                newPlayers.map {
-                    PlayerData(
-                        Random(it.hashCode()).nextLong(),
-                        name = it.value
-                    )
-                }
-            )
-            print("\nPlayer2 updated")
-            repository.selectAll().forEachIndexed { index, playerData ->
-                print("\nPlayer2: $index. $playerData")
-            }
+            repository.insert(newPlayers)
         }
     }
 
