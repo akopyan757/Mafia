@@ -12,7 +12,6 @@ data class LivePlayerState(
     val isClient: Boolean = false,
     val actions: List<GameAction> = emptyList(),
     val fouls: Int = 0,
-    val points: Float = 0f,
 ): Item<Int> {
     override val key: Int get() = number
 }

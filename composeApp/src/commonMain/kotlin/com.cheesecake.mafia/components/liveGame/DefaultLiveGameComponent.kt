@@ -2,12 +2,13 @@ package com.cheesecake.mafia.components.liveGame
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
+import com.cheesecake.mafia.state.FinishedGameProtocolState
 import com.cheesecake.mafia.state.NewGamePlayerItem
 
 class DefaultLiveGameComponent(
     componentContext: ComponentContext,
     players: List<NewGamePlayerItem>,
-    private val onFinishGame: () -> Unit = {},
+    private val onFinishGame: (protocol: FinishedGameProtocolState) -> Unit = {},
 ): LiveGameComponent, ComponentContext by componentContext {
 
     //private val _model = MutableValue(LiveGameComponent.Model(players))
@@ -17,7 +18,7 @@ class DefaultLiveGameComponent(
         )
     )
 
-    override fun onFinishGameClicked() {
-        onFinishGame()
+    override fun onFinishGameClicked(protocol: FinishedGameProtocolState) {
+        onFinishGame(protocol)
     }
 }

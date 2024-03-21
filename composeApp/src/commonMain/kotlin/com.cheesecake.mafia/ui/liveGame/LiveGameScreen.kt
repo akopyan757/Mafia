@@ -48,6 +48,7 @@ import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.components.liveGame.LiveGameComponent
+import com.cheesecake.mafia.state.FinishedGameProtocolState
 import com.cheesecake.mafia.state.GameActionType
 import com.cheesecake.mafia.state.GameFinishResult
 import com.cheesecake.mafia.state.GameStandingState
@@ -81,7 +82,7 @@ fun LiveGameScreen(component: LiveGameComponent) {
 @Composable
 fun LiveGameScreen(
     viewModel: LiveGameStandingViewModel,
-    onFinishGame: () -> Unit,
+    onFinishGame: (FinishedGameProtocolState) -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
     val history by viewModel.history.collectAsState()
@@ -157,10 +158,6 @@ fun LiveGameScreen(
                             onShowOnlyAliveChanged = { showOnlyAlive = it },
                         )
                     }
-                    val winner = state.winner
-                    if (winner != null) {
-                        WinnerAcceptWidget(winner = winner)
-                    }
                     val deletePlayersCandidates = state.deleteCandidates
                     if (deletePlayersCandidates.isNotEmpty()) {
                         LiveDeletePlayerWidget(
@@ -176,13 +173,19 @@ fun LiveGameScreen(
                 modifier = Modifier.width(250.dp).fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                LiveGameTimer(
+                 val finishResult = state.winner
+                 LiveGameTimer(
                     modifier = Modifier.fillMaxWidth(),
                     active = gameActive,
+                    finishResult = finishResult,
                     onPauseGame = viewModel::pauseGame,
-                    onStopGame = {
-                        viewModel.stopGame(it)
-                        onFinishGame()
+                    onStopGame = { time ->
+                        viewModel.stopGame()
+                        finishResult?.let {
+                            viewModel.buildFinishedProtocol(time, finishResult)
+                        }?.let { protocol ->
+                            onFinishGame(protocol)
+                        }
                     },
                     redoActive = redoStack.size > 0,
                     undoActive = undoStack.size > 0,
@@ -389,7 +392,8 @@ fun LiveGameAliveWidget(
 @Composable
 fun WinnerAcceptWidget(
     modifier: Modifier = Modifier,
-    winner: GameFinishResult
+    winner: GameFinishResult,
+    onFinishAccepted: () -> Unit,
 ) {
     val text = when (winner) {
         GameFinishResult.BlackWin -> "Победа мафии"
@@ -414,7 +418,7 @@ fun WinnerAcceptWidget(
             Button(
                 colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
                 modifier = Modifier.fillMaxWidth(),
-                onClick = {}
+                onClick = { onFinishAccepted() }
             ) {
                 Text(
                     text = "Подтвердить",

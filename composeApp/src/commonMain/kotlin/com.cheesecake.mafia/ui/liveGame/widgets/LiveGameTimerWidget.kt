@@ -3,7 +3,6 @@ package com.cheesecake.mafia.ui.liveGame.widgets
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -19,15 +18,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.White
+import com.cheesecake.mafia.state.GameFinishResult
 import kotlinx.coroutines.delay
 
 @Composable
 fun LiveGameTimer(
     modifier: Modifier = Modifier,
     active: Boolean = false,
+    finishResult: GameFinishResult? = null,
     onStopGame: (totalTime: Int) -> Unit = {},
     onPauseGame: () -> Unit = {},
     undoActive: Boolean = false,
@@ -43,6 +45,12 @@ fun LiveGameTimer(
     val seconds by derivedStateOf {
         timer.mod(60).let { if (it < 9) "0${it}" else "$it" }
     }
+    val finishResultText = when (finishResult) {
+        GameFinishResult.BlackWin -> "Победа мафии"
+        GameFinishResult.RedWin -> "Победа мирного города"
+        GameFinishResult.WhiteWin -> "Победа маньяка"
+        else -> null
+    }
 
     Card(modifier) {
         Column(
@@ -54,6 +62,14 @@ fun LiveGameTimer(
                 text = "${hours}:${minutes}:${seconds}",
                 style = MaterialTheme.typography.h6,
             )
+            if (finishResultText != null) {
+                Text(
+                    text = finishResultText,
+                    style = MaterialTheme.typography.body1,
+                    color = BlackDark,
+                    textAlign = TextAlign.Center,
+                )
+            }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(
                     onClick = onPauseGame,
@@ -69,6 +85,7 @@ fun LiveGameTimer(
                 Button(
                     onClick = { onStopGame(timer) },
                     modifier = Modifier.weight(1f),
+                    enabled = finishResult != null,
                     colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
                 ) {
                     Text(

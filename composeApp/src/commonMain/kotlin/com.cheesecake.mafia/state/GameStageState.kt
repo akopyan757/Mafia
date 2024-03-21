@@ -1,5 +1,6 @@
 package com.cheesecake.mafia.state
 
+
 sealed class LiveStage(val type: StageDayType) {
 
     data object Start: LiveStage(StageDayType.Night)

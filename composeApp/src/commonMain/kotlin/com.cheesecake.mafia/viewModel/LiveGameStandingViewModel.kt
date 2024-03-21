@@ -1,12 +1,15 @@
 package com.cheesecake.mafia.viewModel
 
+import com.cheesecake.mafia.state.FinishedGameProtocolState
 import com.cheesecake.mafia.state.GameAction
 import com.cheesecake.mafia.state.GameActionType
+import com.cheesecake.mafia.state.GameFinishResult
 import com.cheesecake.mafia.state.HistoryItem
 import com.cheesecake.mafia.state.LiveGameState
 import com.cheesecake.mafia.state.LivePlayerState
 import com.cheesecake.mafia.state.LiveStage
 import com.cheesecake.mafia.state.NewGamePlayerItem
+import com.cheesecake.mafia.state.buildFinishedProtocol
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -74,7 +77,16 @@ class LiveGameStandingViewModel(
         _gameActive.value = false
     }
 
-    fun stopGame(time: Int) {
+    fun buildFinishedProtocol(time: Int, winner: GameFinishResult): FinishedGameProtocolState? {
+        return buildFinishedProtocol(
+            liveGameState = _state.value,
+            history = _history.value,
+            finishResult = winner,
+            totalTime = time,
+        )
+    }
+
+    fun stopGame() {
         _gameActive.value = false
     }
 
@@ -233,12 +245,6 @@ class LiveGameStandingViewModel(
     private fun List<LiveStage>.popFirst(): Pair<List<LiveStage>, LiveStage?> {
         val items = this.toMutableList()
         val last = items.removeFirstOrNull() ?: return emptyList<LiveStage>() to null
-        return items.toList() to last
-    }
-
-    private fun List<LiveStage>.pop(): Pair<List<LiveStage>, LiveStage?> {
-        val items = this.toMutableList()
-        val last = items.removeLastOrNull() ?: return emptyList<LiveStage>() to null
         return items.toList() to last
     }
 

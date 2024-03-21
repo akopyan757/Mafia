@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.jetbrains.stack.Children
 import com.cheesecake.mafia.components.root.RootComponent
+import com.cheesecake.mafia.ui.finishedGame.FinishedGameScreen
 import com.cheesecake.mafia.ui.liveGame.LiveGameScreen
 import com.cheesecake.mafia.ui.main.MainScreen
 import com.cheesecake.mafia.ui.newGame.NewGameScreen
@@ -31,6 +32,7 @@ fun RootScreen(
                     is RootComponent.Child.Main -> MainScreen(component = instance.component)
                     is RootComponent.Child.NewGame -> NewGameScreen(component = instance.component)
                     is RootComponent.Child.LiveGame -> LiveGameScreen(component = instance.component)
+                    is RootComponent.Child.FinishedGame -> FinishedGameScreen(component = instance.component)
                 }
             }
         }
