@@ -34,7 +34,7 @@ fun buildProtocol(
     finishResult: GameFinishResult,
     totalTime: Int,
 ) = FinishedGameProtocolState(
-    id = Random(value.hashCode()).nextInt(),
+    id = Random(startGameData.hashCode()).nextInt(),
     title = startGameData.title,
     date = startGameData.date,
     players = liveGameState.players.map { it.toFinishedGamePlayer() },
