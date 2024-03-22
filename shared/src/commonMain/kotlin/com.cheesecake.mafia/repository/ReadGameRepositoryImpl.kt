@@ -16,12 +16,13 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
-internal class GameRepositoryImpl(driverFactory: IDriverFactory) : GameRepository {
+internal class ReadGameRepositoryImpl(driverFactory: IDriverFactory) : ReadGameRepository {
 
     private val database = Database(
         driverFactory.createDriver(Database.Schema)
     )
     private val dbQuery = database.databaseQueries
+    private val jsonArray = Json { useArrayPolymorphism = true }
 
     override suspend fun selectAll(): List<GameData> = withContext(Dispatchers.IO) {
         dbQuery.transactionWithResult {
@@ -38,22 +39,6 @@ internal class GameRepositoryImpl(driverFactory: IDriverFactory) : GameRepositor
         }
     }
 
-    override suspend fun insert(item: GameData) = withContext(Dispatchers.IO) {
-        dbQuery.transaction {
-            dbQuery.insertGame(item.toDatabaseDto())
-            item.players.forEach { playerDate ->
-                dbQuery.insertPlayerGame(playerGame = playerDate.toDatabaseDto())
-            }
-        }
-    }
-
-    override suspend fun deleteById(id: Long) = withContext(Dispatchers.IO) {
-        dbQuery.transaction {
-            dbQuery.deleteGameById(id)
-            dbQuery.deletePlayerFromGame(id)
-        }
-    }
-
     private fun Game.toData(): GameData = GameData(
         id = id,
         title = title,
@@ -65,20 +50,6 @@ internal class GameRepositoryImpl(driverFactory: IDriverFactory) : GameRepositor
         players = emptyList()
     )
 
-    private fun GameData.toDatabaseDto() = Game(
-        id = id,
-        title = title,
-        date = date,
-        lastRound = lastRound.toLong(),
-        lastDayType = Json.encodeToString(DayType.serializer(), lastDayType),
-        finishResult = Json.encodeToString(GameFinishResult.serializer(), finishResult),
-        totalTime = totalTime
-    )
-
-    private val jsonArray = Json {
-        useArrayPolymorphism = true
-    }
-
     private fun PlayerGame.toData() = GamePlayerData(
         playerId = playerId,
         gameId = gameId,
@@ -89,17 +60,5 @@ internal class GameRepositoryImpl(driverFactory: IDriverFactory) : GameRepositor
         isAlive = isAlive,
         isDeleted = isDeleted,
         actions = jsonArray.decodeFromString(ListSerializer(GameAction.serializer()), actions),
-    )
-
-    private fun GamePlayerData.toDatabaseDto() = PlayerGame(
-        playerId = playerId,
-        gameId = gameId,
-        number = number.toLong(),
-        name = name,
-        role = Json.encodeToString(GamePlayerRole.serializer(), role),
-        isWinner = isWinner,
-        isAlive = isAlive,
-        isDeleted = isDeleted,
-        actions =  jsonArray.encodeToString(ListSerializer(GameAction.serializer()), actions),
     )
 }

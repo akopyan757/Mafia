@@ -1,14 +1,16 @@
 package com.cheesecake.mafia.viewModel
 
 import com.cheesecake.mafia.data.GameData
-import com.cheesecake.mafia.repository.GameRepository
+import com.cheesecake.mafia.repository.ManageGameRepository
+import com.cheesecake.mafia.repository.ReadGameRepository
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class MainViewModel(
-    private val gameRepository: GameRepository
+    private val gameRepository: ReadGameRepository,
+    private val manageGameRepository: ManageGameRepository,
 ): ViewModel() {
 
     private val _gameItems = MutableStateFlow<List<GameData>>(emptyList())
@@ -16,7 +18,7 @@ class MainViewModel(
 
     fun deleteGame(gameId: Long) {
         viewModelScope.launch {
-            gameRepository.deleteById(gameId)
+            manageGameRepository.deleteById(gameId)
             _gameItems.value = gameRepository.selectAll()
         }
     }

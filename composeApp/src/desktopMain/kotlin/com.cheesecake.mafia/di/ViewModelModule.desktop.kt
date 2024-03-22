@@ -8,7 +8,7 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 actual fun viewModelModule(): Module = module {
-    single { MainViewModel(get()) }
+    single { MainViewModel(get(), get()) }
     factory { NewGameViewModel(get()) }
     factory { params -> LiveGameViewModel(params[0], get()) }
     factory { params -> FinishedGameViewModel(params[0], get()) }

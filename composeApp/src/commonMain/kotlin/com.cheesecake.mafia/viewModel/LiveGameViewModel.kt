@@ -5,7 +5,8 @@ import com.cheesecake.mafia.data.GameAction
 import com.cheesecake.mafia.data.GameActionType
 import com.cheesecake.mafia.data.GameData
 import com.cheesecake.mafia.data.GameFinishResult
-import com.cheesecake.mafia.repository.GameRepository
+import com.cheesecake.mafia.repository.ManageGameRepository
+import com.cheesecake.mafia.repository.ReadGameRepository
 import com.cheesecake.mafia.state.HistoryItem
 import com.cheesecake.mafia.state.LiveGameState
 import com.cheesecake.mafia.state.LivePlayerState
@@ -19,7 +20,7 @@ import kotlinx.coroutines.launch
 
 class LiveGameViewModel(
     private val startGameData: StartGameData,
-    private val gameRepository: GameRepository,
+    private val manageGameRepository: ManageGameRepository
 ): ViewModel() {
 
     companion object {
@@ -89,7 +90,7 @@ class LiveGameViewModel(
                 finishResult = winner,
                 totalTime = time,
             )
-            gameRepository.insert(data)
+            manageGameRepository.insert(data)
             onUploaded(data)
         }
     }

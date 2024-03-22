@@ -2,7 +2,7 @@ package com.cheesecake.mafia.viewModel
 
 import com.cheesecake.mafia.common.ApiResult
 import com.cheesecake.mafia.data.GameData
-import com.cheesecake.mafia.repository.GameRepository
+import com.cheesecake.mafia.repository.ReadGameRepository
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 
 class FinishedGameViewModel(
     private val gameId: Long,
-    private val gameRepository: GameRepository,
+    private val gameRepository: ReadGameRepository,
 ): ViewModel() {
 
     private val _gameDataResult = MutableStateFlow<ApiResult<GameData>>(ApiResult.Loading)
