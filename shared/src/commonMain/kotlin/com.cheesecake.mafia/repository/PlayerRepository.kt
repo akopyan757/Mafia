@@ -1,6 +1,6 @@
 package com.cheesecake.mafia.repository
 
-import com.cheesecake.mafia.entities.PlayerData
+import com.cheesecake.mafia.data.PlayerData
 
 interface PlayerRepository {
     fun selectAll(): List<PlayerData>

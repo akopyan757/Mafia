@@ -8,6 +8,6 @@ import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 
 actual class DriverFactory: IDriverFactory {
     actual override fun createDriver(schema: SqlSchema<QueryResult.AsyncValue<Unit>>): SqlDriver {
-        return JdbcSqliteDriver(url = "jdbc:sqlite::memory", schema = schema.synchronous())
+        return JdbcSqliteDriver(url = "jdbc:sqlite:Database.db", schema = schema.synchronous())
     }
 }

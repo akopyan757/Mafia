@@ -22,7 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.White
-import com.cheesecake.mafia.state.GameFinishResult
+import com.cheesecake.mafia.data.GameFinishResult
 import kotlinx.coroutines.delay
 
 @Composable
@@ -30,14 +30,14 @@ fun LiveGameTimer(
     modifier: Modifier = Modifier,
     active: Boolean = false,
     finishResult: GameFinishResult? = null,
-    onStopGame: (totalTime: Int) -> Unit = {},
+    onStopGame: (totalTime: Long) -> Unit = {},
     onPauseGame: () -> Unit = {},
     undoActive: Boolean = false,
     onUndo: () -> Unit = {},
     redoActive: Boolean = false,
     onRedo: () -> Unit = {},
 ) {
-    var timer by remember { mutableStateOf(0) }
+    var timer by remember { mutableStateOf(0L) }
     val hours by derivedStateOf { timer.div(3600).toString() }
     val minutes by derivedStateOf {
         timer.mod(3600).div(60).let { if (it < 9) "0${it}" else "$it" }

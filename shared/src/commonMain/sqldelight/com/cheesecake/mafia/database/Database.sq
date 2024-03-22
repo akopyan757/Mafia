@@ -1,14 +1,68 @@
+import kotlin.Boolean;
+
 ---TABLE
 CREATE TABLE IF NOT EXISTS `player`(
     `id` INTEGER PRIMARY KEY NOT NULL,
     `name` TEXT NOT NULL
 );
 
-entries:
+CREATE TABLE IF NOT EXISTS `game`(
+    `id` INTEGER PRIMARY KEY NOT NULL,
+    `title` TEXT NOT NULL,
+    `date` TEXT NOT NULL,
+    `lastRound` INTEGER NOT NULL,
+    `lastDayType` TEXT NOT NULL,
+    `finishResult` TEXT NOT NULL,
+    `totalTime` INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS `playerGame`(
+    `playerId` INTEGER NOT NULL,
+    `gameId` INTEGER NOT NULL,
+    `number` INTEGER NOT NULL,
+    `name` TEXT NOT NULL,
+    `role` TEXT NOT NULL,
+    `isWinner` INTEGER AS Boolean DEFAULT 0 NOT NULL,
+    `isAlive` INTEGER AS Boolean DEFAULT 0 NOT NULL,
+    `isDeleted` INTEGER AS Boolean DEFAULT 0 NOT NULL,
+    `actions` TEXT NOT NULL
+);
+
+selectPlayers:
 SELECT * FROM `player` ORDER BY name ASC;
 
-insert:
+insertPlayer:
 INSERT INTO `player`(id, name) VALUES (?, ?);
 
-deleteAll:
+deleteAllPlayers:
 DELETE FROM `player`;
+
+selectAllGames:
+SELECT * FROM `game`;
+
+selectGameById:
+SELECT * FROM `game` WHERE id == ?;
+
+insertGame:
+INSERT INTO `game`(id, title, date, lastRound, lastDayType, finishResult, totalTime) VALUES ?;
+
+insertGame2:
+INSERT INTO `game`(id, title, date, lastRound, lastDayType, finishResult, totalTime)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+deleteGameById:
+DELETE FROM `game` WHERE id == ?;
+
+
+
+selectPlayersInGame:
+SELECT * FROM `playerGame` WHERE gameId == ?;
+
+selectPlayerGamesById:
+SELECT * FROM `playerGame` WHERE playerId == ?;
+
+insertPlayerGame:
+INSERT INTO `playerGame`(playerId, gameId, number, name, role, isWinner, isAlive, isDeleted, actions) VALUES ?;
+
+deletePlayerFromGame:
+DELETE FROM `playerGame` WHERE gameId == ?;

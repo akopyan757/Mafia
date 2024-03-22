@@ -49,7 +49,7 @@ import com.cheesecake.mafia.common.RussianKey
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.imageResources
-import com.cheesecake.mafia.state.GamePlayerRole
+import com.cheesecake.mafia.data.GamePlayerRole
 import com.cheesecake.mafia.state.PlayerState
 import com.cheesecake.mafia.state.SelectPlayerState
 import com.cheesecake.mafia.state.primaryColor

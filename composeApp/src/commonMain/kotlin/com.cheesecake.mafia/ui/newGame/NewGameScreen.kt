@@ -25,23 +25,24 @@ import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.components.newGame.NewGameComponent
-import com.cheesecake.mafia.state.GamePlayerRole
+import com.cheesecake.mafia.data.GamePlayerRole
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
 import com.cheesecake.mafia.state.NewGamePlayerItem
 import com.cheesecake.mafia.state.PlayerState
-import com.cheesecake.mafia.state.StageDayType
+import com.cheesecake.mafia.data.DayType
+import com.cheesecake.mafia.data.roleValues
 import com.cheesecake.mafia.state.StartGameData
 import com.cheesecake.mafia.ui.GameStanding
 import com.cheesecake.mafia.ui.custom.DateSelectorTextField
 import com.cheesecake.mafia.ui.custom.IntCounter
 import com.cheesecake.mafia.ui.newGame.widget.NewGameRolesWidget
-import com.cheesecake.mafia.viewModel.NewGameStandingViewModel
+import com.cheesecake.mafia.viewModel.NewGameViewModel
 import org.koin.compose.koinInject
 
 @Composable
 fun NewGameScreen(component: NewGameComponent) {
-    val viewModel: NewGameStandingViewModel = koinInject()
+    val viewModel: NewGameViewModel = koinInject()
 
     NewGameStanding(
         viewModel = viewModel,
@@ -52,7 +53,7 @@ fun NewGameScreen(component: NewGameComponent) {
 
 @Composable
 fun NewGameStanding(
-    viewModel: NewGameStandingViewModel,
+    viewModel: NewGameViewModel,
     onBackPressed: () -> Unit,
     onStartGameClicked: (date: StartGameData) -> Unit,
 ) {
@@ -127,7 +128,7 @@ fun NewGameStanding(
                 modifier = Modifier.wrapContentSize().padding(top = 8.dp),
                 items = state.items,
                 availablePlayers = state.availablePlayers,
-                availableRoles = GamePlayerRole.values(),
+                availableRoles = roleValues(),
                 onRoleChanged = { number, role -> viewModel.onRoleChanged(number, role) },
                 onPlayerChoose = { number, player -> viewModel.onPlayerChosen(number, player) },
                 onNewPlayerChosen = { number, name -> viewModel.onNewPlayerNameChanged(number, name) },
@@ -153,7 +154,7 @@ fun NewGameStanding(
             id = 0,
             status = GameStatus.NewGame,
             round = 0,
-            dayType = StageDayType.Night,
+            dayType = DayType.Night,
             isShowRoles = true,
         ),
         itemsCount = items.size,

@@ -1,5 +1,9 @@
 package com.cheesecake.mafia.state
 
+import com.cheesecake.mafia.data.GameActionType
+import com.cheesecake.mafia.data.GameFinishResult
+import com.cheesecake.mafia.data.GamePlayerRole
+
 data class LiveGameState(
     val id: Int = 1,
     val players: List<LivePlayerState> = emptyList(),

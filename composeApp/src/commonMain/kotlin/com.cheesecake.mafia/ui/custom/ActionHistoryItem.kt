@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.imageResources
-import com.cheesecake.mafia.state.GameActionType
+import com.cheesecake.mafia.data.GameActionType
 
 @Composable
 fun ActionHistoryItem(

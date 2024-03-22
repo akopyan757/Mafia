@@ -1,8 +1,8 @@
 package com.cheesecake.mafia.viewModel
 
-import com.cheesecake.mafia.entities.PlayerData
+import com.cheesecake.mafia.data.PlayerData
 import com.cheesecake.mafia.repository.PlayerRepository
-import com.cheesecake.mafia.state.GamePlayerRole
+import com.cheesecake.mafia.data.GamePlayerRole
 import com.cheesecake.mafia.state.NewGamePlayerItem
 import com.cheesecake.mafia.state.NewGameState
 import com.cheesecake.mafia.state.PlayerState
@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
-class NewGameStandingViewModel(
+class NewGameViewModel(
     private val repository: PlayerRepository
 ): ViewModel() {
 

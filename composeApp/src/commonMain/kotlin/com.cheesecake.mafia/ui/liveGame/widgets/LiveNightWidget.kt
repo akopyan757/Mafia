@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.imageResources
-import com.cheesecake.mafia.state.GameActionType
+import com.cheesecake.mafia.data.GameActionType
 
 @Composable
 fun LiveNightWidget(

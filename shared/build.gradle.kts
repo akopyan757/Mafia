@@ -44,8 +44,10 @@ kotlin {
     
     sourceSets {
         commonMain.dependencies {
-            implementation("io.insert-koin:koin-core:3.5.3")
+            implementation(libs.koin.core)
+            implementation(libs.kotlinx.serialization.json)
             implementation(libs.sqldelight.coroutines)
+            implementation(libs.sqldelight.primitive.adapters)
         }
         androidMain.dependencies {
             implementation(libs.sqldelight.android)
@@ -65,4 +67,7 @@ android {
     defaultConfig {
         minSdk = libs.versions.android.minSdk.get().toInt()
     }
+}
+dependencies {
+    implementation(libs.androidx.media3.decoder)
 }

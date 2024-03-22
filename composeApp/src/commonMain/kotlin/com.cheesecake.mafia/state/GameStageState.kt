@@ -1,11 +1,13 @@
 package com.cheesecake.mafia.state
 
+import com.cheesecake.mafia.data.DayType
 
-sealed class LiveStage(val type: StageDayType) {
 
-    data object Start: LiveStage(StageDayType.Night)
+sealed class LiveStage(val type: DayType) {
 
-    sealed class Day : LiveStage(StageDayType.Day) {
+    data object Start: LiveStage(DayType.Night)
+
+    sealed class Day : LiveStage(DayType.Day) {
         data class LastDeathSpeech(val playerNumber: Int): Day()
         data class LastVotedSpeech(val playerNumber: Int): Day()
         data class Speech(
@@ -18,31 +20,33 @@ sealed class LiveStage(val type: StageDayType) {
         ): Day()
     }
 
-    class Night : LiveStage(StageDayType.Night)
+    class Night : LiveStage(DayType.Night)
 
     fun canAddCandidate(): Boolean {
         return this is Day.Speech && !this.candidateForElimination
     }
 }
 
-enum class StageDayType(val value: String, val order: Int) {
-    Day("День", 1),
-    Night("Ночь", 0)
+fun DayType.toText(): String {
+    return when (this) {
+        DayType.Day -> "День"
+        DayType.Night -> "Ночь"
+    }
 }
 
-fun generateHistory(stage: StageDayType, count: Int): List<Pair<StageDayType, Int>> {
+fun generateHistory(stage: DayType, count: Int): List<Pair<DayType, Int>> {
     return (0..count).map { index ->
         if (index == 0) {
-            if (stage == StageDayType.Night && count == 0) {
+            if (stage == DayType.Night && count == 0) {
                 listOf()
             } else {
-                listOf(StageDayType.Day to index)
+                listOf(DayType.Day to index)
             }
         } else {
-            if (stage == StageDayType.Night && index == count) {
-                listOf(StageDayType.Night to index)
+            if (stage == DayType.Night && index == count) {
+                listOf(DayType.Night to index)
             } else {
-                listOf(StageDayType.Night to index, StageDayType.Day to index)
+                listOf(DayType.Night to index, DayType.Day to index)
             }
         }
     }.flatten()

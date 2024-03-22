@@ -18,8 +18,6 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -48,9 +46,7 @@ import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.components.liveGame.LiveGameComponent
-import com.cheesecake.mafia.state.FinishedGameProtocolState
-import com.cheesecake.mafia.state.GameActionType
-import com.cheesecake.mafia.state.GameFinishResult
+import com.cheesecake.mafia.data.GameActionType
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
 import com.cheesecake.mafia.state.LivePlayerState
@@ -64,24 +60,21 @@ import com.cheesecake.mafia.ui.liveGame.widgets.LiveNightWidget
 import com.cheesecake.mafia.ui.liveGame.widgets.LiveSpeechPlayerTimerWidget
 import com.cheesecake.mafia.ui.liveGame.widgets.LiveVoteWidget
 import com.cheesecake.mafia.ui.playerSpeechTimeSeconds
-import com.cheesecake.mafia.viewModel.LiveGameStandingViewModel
-import dev.icerock.moko.mvvm.compose.getViewModel
-import dev.icerock.moko.mvvm.compose.viewModelFactory
+import com.cheesecake.mafia.viewModel.LiveGameViewModel
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
-
 
 @Composable
 fun LiveGameScreen(component: LiveGameComponent) {
     val players by component.model.subscribeAsState()
-    val viewModel = koinInject<LiveGameStandingViewModel> { parametersOf(players.data) }
+    val viewModel = koinInject<LiveGameViewModel> { parametersOf(players.data) }
     LiveGameScreen(viewModel, onFinishGame = component::onFinishGameClicked)
 }
 
 @Composable
 fun LiveGameScreen(
-    viewModel: LiveGameStandingViewModel,
-    onFinishGame: (FinishedGameProtocolState) -> Unit,
+    viewModel: LiveGameViewModel,
+    onFinishGame: (gameId: Long) -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
     val history by viewModel.history.collectAsState()
@@ -179,19 +172,18 @@ fun LiveGameScreen(
                     finishResult = finishResult,
                     onPauseGame = viewModel::pauseGame,
                     onStopGame = { time ->
-                        viewModel.stopGame()
                         finishResult?.let {
-                            viewModel.buildFinishedProtocol(time, finishResult)
-                        }?.let { protocol ->
-                            onFinishGame(protocol)
+                            viewModel.saveGameRepository(time, finishResult) { data ->
+                                onFinishGame(data.id)
+                            }
                         }
+                        //viewModel.stopGame()
                     },
                     redoActive = redoStack.size > 0,
                     undoActive = undoStack.size > 0,
-                    onUndo = { viewModel.undoState() },
-                    onRedo = { viewModel.redoState() }
-                )
-                Card(
+                    onUndo = { viewModel.undoState() }
+                 ) { viewModel.redoState() }
+                 Card(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.weight(1f),
                     backgroundColor = White,

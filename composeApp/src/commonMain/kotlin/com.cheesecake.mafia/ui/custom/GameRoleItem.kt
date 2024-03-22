@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.imageResources
-import com.cheesecake.mafia.state.GamePlayerRole
+import com.cheesecake.mafia.data.GamePlayerRole
 import com.cheesecake.mafia.state.primaryColor
 import com.cheesecake.mafia.state.secondaryColor
 

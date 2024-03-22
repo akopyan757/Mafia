@@ -1,7 +1,6 @@
 package com.cheesecake.mafia.components.finishedGame
 
 import com.arkivanov.decompose.value.MutableValue
-import com.cheesecake.mafia.state.FinishedGameProtocolState
 
 interface FinishedGameComponent {
 
@@ -9,7 +8,5 @@ interface FinishedGameComponent {
 
     fun onBackPressed()
 
-    data class Model(
-        val model: FinishedGameProtocolState
-    )
+    data class Model(val gameId: Long)
 }

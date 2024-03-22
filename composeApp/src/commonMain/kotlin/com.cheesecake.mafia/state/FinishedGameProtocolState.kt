@@ -1,53 +1,42 @@
 package com.cheesecake.mafia.state
 
-import kotlinx.serialization.Serializable
+import com.cheesecake.mafia.data.GameData
+import com.cheesecake.mafia.data.GameFinishResult
+import com.cheesecake.mafia.data.GamePlayerData
+import com.cheesecake.mafia.data.GamePlayerRole
 import kotlin.random.Random
-
-@Serializable
-data class FinishedGameProtocolState(
-    val id: Int,
-    val title: String,
-    val date: String,
-    val players: List<FinishedGamePlayersState>,
-    val lastRound: Int,
-    val lastDayType: StageDayType,
-    val history: List<HistoryItem> = emptyList(),
-    val finishResult: GameFinishResult,
-    val totalTime: Int,
-)
-
-@Serializable
-data class FinishedGamePlayersState(
-    val playerId: Long,
-    val number: Int = 1,
-    val name: String = "",
-    val role: GamePlayerRole = GamePlayerRole.None,
-    val isAlive: Boolean = true,
-    val isDeleted: Boolean = false,
-    val actions: List<GameAction> = emptyList(),
-)
 
 fun buildProtocol(
     startGameData: StartGameData,
     liveGameState: LiveGameState,
-    history: List<HistoryItem>,
     finishResult: GameFinishResult,
-    totalTime: Int,
-) = FinishedGameProtocolState(
-    id = Random(startGameData.hashCode()).nextInt(),
-    title = startGameData.title,
-    date = startGameData.date,
-    players = liveGameState.players.map { it.toFinishedGamePlayer() },
-    lastRound = liveGameState.round,
-    lastDayType = liveGameState.stage.type,
-    history = history,
-    finishResult = finishResult,
-    totalTime = totalTime,
-)
+    totalTime: Long,
+): GameData {
+    val gameId = Random(startGameData.hashCode()).nextInt().toLong()
+    return GameData(
+        id = gameId,
+        title = startGameData.title,
+        date = startGameData.date,
+        players = liveGameState.players.map { it.toPlayerGameData(gameId, finishResult) },
+        lastRound = liveGameState.round,
+        lastDayType = liveGameState.stage.type,
+        finishResult = finishResult,
+        totalTime = totalTime,
+    )
+}
 
-fun LivePlayerState.toFinishedGamePlayer(): FinishedGamePlayersState {
-    return FinishedGamePlayersState(
-        playerId, number, name, role, isAlive, isDeleted, actions
+fun LivePlayerState.toPlayerGameData(
+    gameId: Long,
+    finishResult: GameFinishResult,
+): GamePlayerData {
+    val isWinner = when {
+        role is GamePlayerRole.White && finishResult == GameFinishResult.WhiteWin -> true
+        role is GamePlayerRole.Red && finishResult == GameFinishResult.RedWin -> true
+        role is GamePlayerRole.Black && finishResult == GameFinishResult.BlackWin -> true
+        else -> false
+    }
+    return GamePlayerData(
+        playerId, gameId = gameId, number, name, role, isWinner, isAlive, isDeleted, actions
     )
 }
 

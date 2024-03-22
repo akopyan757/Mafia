@@ -37,11 +37,11 @@ import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.YellowDark
 import com.cheesecake.mafia.common.imageResources
-import com.cheesecake.mafia.state.GameActionType
+import com.cheesecake.mafia.data.GameActionType
 import com.cheesecake.mafia.state.LivePlayerState
-import com.cheesecake.mafia.state.GamePlayerRole
+import com.cheesecake.mafia.data.GamePlayerRole
 import com.cheesecake.mafia.state.LiveStage
-import com.cheesecake.mafia.state.StageDayType
+import com.cheesecake.mafia.data.DayType
 import com.cheesecake.mafia.state.generateHistory
 import com.cheesecake.mafia.state.primaryColor
 import com.cheesecake.mafia.state.secondaryColor
@@ -150,7 +150,7 @@ fun LiveGameItem(
                 val gameActions = player.actions
                     .filter { it.actionType.dayType() == dayType && it.dayIndex == dayRound }
                     .map { gameAction -> gameAction.actionType }
-                val historyItemModifier = if (dayType == StageDayType.Day) {
+                val historyItemModifier = if (dayType == DayType.Day) {
                     Modifier.weight(dayStageColumnWeight).defaultMinSize(minWidth = dayStageColumnMinWidth)
                 } else {
                     Modifier.weight(nightStageColumnWeight).defaultMinSize(minWidth = nightStageColumnMinWidth)
@@ -165,13 +165,13 @@ fun LiveGameItem(
         }
         actionsHistory.lastOrNull()?.let { (stageDayType, _) ->
             VerticalDivider(color = WhiteLight, modifier = Modifier.align(Alignment.CenterVertically))
-            val itemModifier = if (stageDayType == StageDayType.Day) {
+            val itemModifier = if (stageDayType == DayType.Day) {
                 Modifier.defaultMinSize(minWidth = dayStageColumnMinWidth).weight(dayStageColumnWeight)
             } else {
                 Modifier.width(activeStageColumnMinWidth)
             }
             if (player.isAlive) {
-                if (stageDayType == StageDayType.Day) {
+                if (stageDayType == DayType.Day) {
                     if (!player.isClient) {
                         DayActionItem(
                             modifier = itemModifier,

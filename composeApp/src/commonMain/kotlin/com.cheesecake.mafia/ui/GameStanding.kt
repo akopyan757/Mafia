@@ -1,15 +1,12 @@
 package com.cheesecake.mafia.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.Divider
@@ -22,20 +19,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
-import com.cheesecake.mafia.common.Blue
-import com.cheesecake.mafia.common.GreyLight
-import com.cheesecake.mafia.common.Red
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.WhiteLight
-import com.cheesecake.mafia.common.Yellow
-import com.cheesecake.mafia.common.imageResources
-import com.cheesecake.mafia.state.LivePlayerState
-import com.cheesecake.mafia.state.GamePlayerRole
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
-import com.cheesecake.mafia.state.LiveStage
-import com.cheesecake.mafia.state.StageDayType
+import com.cheesecake.mafia.data.DayType
 import com.cheesecake.mafia.state.generateHistory
+import com.cheesecake.mafia.state.toText
 
 @Composable
 fun GameStanding(
@@ -70,7 +60,7 @@ fun GameStanding(
 fun HeaderItem(
     modifier: Modifier = Modifier,
     round: Int,
-    dayType: StageDayType,
+    dayType: DayType,
     status: GameStatus,
     isShowRoles: Boolean,
 ) {
@@ -148,7 +138,7 @@ fun HeaderItem(
                 color = White,
                 modifier = Modifier.align(Alignment.CenterVertically)
             )
-            val modifierColumn = if (stageType == StageDayType.Day) {
+            val modifierColumn = if (stageType == DayType.Day) {
                 Modifier.defaultMinSize(minWidth = dayStageColumnMinWidth)
                     .weight(dayStageColumnWeight)
             } else if (index < actionsHistory.size - 1 || status == GameStatus.Finished) {
@@ -158,7 +148,7 @@ fun HeaderItem(
                 Modifier.width(activeStageColumnMinWidth)
             }
             Text(
-                text = stageType.value + " " + index,
+                text = stageType.toText() + " " + index,
                 modifier = modifierColumn,
                 style = MaterialTheme.typography.body1,
                 textAlign = TextAlign.Center,

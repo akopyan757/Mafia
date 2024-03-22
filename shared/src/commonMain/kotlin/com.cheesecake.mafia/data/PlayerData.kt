@@ -1,4 +1,4 @@
-package com.cheesecake.mafia.entities
+package com.cheesecake.mafia.data
 
 data class PlayerData(
     val id: Long,

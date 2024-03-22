@@ -10,14 +10,12 @@ import com.arkivanov.decompose.router.stack.push
 import com.arkivanov.decompose.value.Value
 import com.cheesecake.mafia.components.finishedGame.DefaultFinishedGameComponent
 import com.cheesecake.mafia.components.finishedGame.FinishedGameComponent
-import com.cheesecake.mafia.state.NewGamePlayerItem
 import com.cheesecake.mafia.components.liveGame.DefaultLiveGameComponent
 import com.cheesecake.mafia.components.liveGame.LiveGameComponent
 import com.cheesecake.mafia.components.main.DefaultMainComponent
 import com.cheesecake.mafia.components.main.MainComponent
 import com.cheesecake.mafia.components.newGame.DefaultNewGameComponent
 import com.cheesecake.mafia.components.newGame.NewGameComponent
-import com.cheesecake.mafia.state.FinishedGameProtocolState
 import com.cheesecake.mafia.state.StartGameData
 import kotlinx.serialization.Serializable
 
@@ -48,7 +46,7 @@ class DefaultRootComponent(
                 liveGameComponent(childComponentContext, config.data)
             )
             is Config.FinishedGame -> RootComponent.Child.FinishedGame(
-                finishedGameComponent(childComponentContext, config.protocol)
+                finishedGameComponent(childComponentContext, config.gameId)
             )
         }
     }
@@ -56,7 +54,8 @@ class DefaultRootComponent(
     private fun mainComponent(componentContext: ComponentContext): MainComponent =
         DefaultMainComponent(
             componentContext = componentContext,
-            onStartNewGame = { navigation.push(Config.NewGame) }
+            onStartNewGame = { navigation.push(Config.NewGame) },
+            onGameItemClicked = { gameId -> navigation.push(Config.FinishedGame(gameId)) }
         )
 
     private fun newGameComponent(componentContext: ComponentContext): NewGameComponent =
@@ -75,21 +74,20 @@ class DefaultRootComponent(
         DefaultLiveGameComponent(
             componentContext = componentContext,
             data = data,
-            onFinishGame = { protocol ->
+            onFinishGame = { gameId ->
                 navigation.popTo(0)
-                navigation.push(Config.FinishedGame(protocol))
+                navigation.push(Config.FinishedGame(gameId))
             }
         )
 
     private fun finishedGameComponent(
         componentContext: ComponentContext,
-        protocol: FinishedGameProtocolState,
+        gameId: Long,
     ): FinishedGameComponent =
         DefaultFinishedGameComponent(
             componentContext = componentContext,
-            protocol = protocol,
-            onBackPressedClicked = { navigation.popTo(0) }
-        )
+            gameId = gameId,
+        ) { navigation.popTo(0) }
 
     override fun onBackClicked(toIndex: Int) {
         navigation.popTo(index = toIndex)
@@ -107,6 +105,6 @@ class DefaultRootComponent(
         data class LiveGame(val data: StartGameData) : Config()
 
         @Serializable
-        data class FinishedGame(val protocol: FinishedGameProtocolState) : Config()
+        data class FinishedGame(val gameId: Long) : Config()
     }
 }

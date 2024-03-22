@@ -27,7 +27,6 @@ fun RootScreen(
                 stack = component.stack,
                 modifier = Modifier.fillMaxSize(),
             ) {
-                print("\nRootScreen: Children")
                 when (val instance = it.instance) {
                     is RootComponent.Child.Main -> MainScreen(component = instance.component)
                     is RootComponent.Child.NewGame -> NewGameScreen(component = instance.component)

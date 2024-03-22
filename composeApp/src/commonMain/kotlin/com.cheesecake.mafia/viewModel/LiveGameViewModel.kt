@@ -1,20 +1,26 @@
 package com.cheesecake.mafia.viewModel
 
-import com.cheesecake.mafia.state.FinishedGameProtocolState
-import com.cheesecake.mafia.state.GameAction
-import com.cheesecake.mafia.state.GameActionType
-import com.cheesecake.mafia.state.GameFinishResult
+import com.cheesecake.mafia.data.DayType
+import com.cheesecake.mafia.data.GameAction
+import com.cheesecake.mafia.data.GameActionType
+import com.cheesecake.mafia.data.GameData
+import com.cheesecake.mafia.data.GameFinishResult
+import com.cheesecake.mafia.repository.GameRepository
 import com.cheesecake.mafia.state.HistoryItem
 import com.cheesecake.mafia.state.LiveGameState
 import com.cheesecake.mafia.state.LivePlayerState
 import com.cheesecake.mafia.state.LiveStage
-import com.cheesecake.mafia.state.StageDayType
 import com.cheesecake.mafia.state.StartGameData
+import com.cheesecake.mafia.state.buildProtocol
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
-class LiveGameStandingViewModel(val startGameData: StartGameData): ViewModel() {
+class LiveGameViewModel(
+    private val startGameData: StartGameData,
+    private val gameRepository: GameRepository,
+): ViewModel() {
 
     companion object {
         const val HISTORY_SIZE = 5
@@ -75,14 +81,17 @@ class LiveGameStandingViewModel(val startGameData: StartGameData): ViewModel() {
         _gameActive.value = false
     }
 
-    fun buildFinishedProtocol(time: Int, winner: GameFinishResult): FinishedGameProtocolState? {
-        return com.cheesecake.mafia.state.buildProtocol(
-            startGameData = startGameData,
-            liveGameState = _state.value,
-            history = _history.value,
-            finishResult = winner,
-            totalTime = time,
-        )
+    fun saveGameRepository(time: Long, winner: GameFinishResult, onUploaded: (GameData) -> Unit) {
+        viewModelScope.launch {
+            val data = buildProtocol(
+                startGameData = startGameData,
+                liveGameState = _state.value,
+                finishResult = winner,
+                totalTime = time,
+            )
+            gameRepository.insert(data)
+            onUploaded(data)
+        }
     }
 
     fun stopGame() {
@@ -155,7 +164,7 @@ class LiveGameStandingViewModel(val startGameData: StartGameData): ViewModel() {
                         isAlive = false,
                         actions = player.actions + listOf(
                             GameAction(state.round, GameActionType.DayAction.Voted),
-                            GameAction(state.round + 1, GameActionType.Dead(StageDayType.Day))
+                            GameAction(state.round + 1, GameActionType.Dead(DayType.Day))
                         )
                     )
                 }
@@ -258,7 +267,7 @@ class LiveGameStandingViewModel(val startGameData: StartGameData): ViewModel() {
                 players[index] = player.copy(
                     actions = player.actions
                         + listOf(GameAction(round, nightAction)) +
-                        if (isKilled) listOf(GameAction(round, GameActionType.Dead(StageDayType.Night))) else emptyList(),
+                        if (isKilled) listOf(GameAction(round, GameActionType.Dead(DayType.Night))) else emptyList(),
                     isClient = player.number == lastClientPlayer,
                     isAlive = player.isAlive && player.number !in lastKilledPlayers,
                 )

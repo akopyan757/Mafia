@@ -20,9 +20,9 @@ import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.WhiteLight
-import com.cheesecake.mafia.state.FinishedGamePlayersState
-import com.cheesecake.mafia.state.GameActionType
-import com.cheesecake.mafia.state.StageDayType
+import com.cheesecake.mafia.data.GameActionType
+import com.cheesecake.mafia.data.DayType
+import com.cheesecake.mafia.data.GamePlayerData
 import com.cheesecake.mafia.state.generateHistory
 import com.cheesecake.mafia.ui.VerticalDivider
 import com.cheesecake.mafia.ui.custom.ActionHistoryItem
@@ -38,9 +38,9 @@ import com.cheesecake.mafia.ui.roleColumnWidth
 @Composable
 fun FinishedGameItem(
     modifier: Modifier = Modifier,
-    player: FinishedGamePlayersState,
+    player: GamePlayerData,
     lastRound: Int = 0,
-    lastDayType: StageDayType,
+    lastDayType: DayType,
 ) {
     Row(
         modifier = modifier.fillMaxWidth().background(White).height(40.dp),
@@ -88,7 +88,7 @@ fun FinishedGameItem(
             val gameActions = player.actions
                 .filter { it.actionType.dayType() == dayType && it.dayIndex == dayIndex }
                 .map { gameAction -> gameAction.actionType }
-            val historyItemModifier = if (dayType == StageDayType.Day) {
+            val historyItemModifier = if (dayType == DayType.Day) {
                 Modifier.weight(dayStageColumnWeight).defaultMinSize(minWidth = dayStageColumnMinWidth)
             } else {
                 Modifier.weight(nightStageColumnWeight).defaultMinSize(minWidth = nightStageColumnMinWidth)
