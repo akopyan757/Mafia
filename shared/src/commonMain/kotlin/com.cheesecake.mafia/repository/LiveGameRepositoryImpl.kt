@@ -1,6 +1,7 @@
 package com.cheesecake.mafia.repository
 
 import com.cheesecake.mafia.data.LiveGameData
+import com.cheesecake.mafia.data.TimerData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -8,6 +9,7 @@ import kotlinx.coroutines.flow.filterNotNull
 internal class LiveGameRepositoryImpl: LiveGameRepository {
 
     private val _state = MutableStateFlow<LiveGameData?>(null)
+    private val _timer = MutableStateFlow(TimerData(0, false))
 
     override fun saveLiveGame(data: LiveGameData) {
         _state.value = data
@@ -20,4 +22,12 @@ internal class LiveGameRepositoryImpl: LiveGameRepository {
     override fun clearLiveState() {
         _state.value = null
     }
+
+    override fun updateTimer(data: TimerData) {
+        _timer.value = data
+    }
+
+    override fun listenTimer() = _timer
+
+
 }

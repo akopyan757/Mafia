@@ -29,6 +29,7 @@ import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.data.LiveGameData
 import com.cheesecake.mafia.data.LivePlayerData
 import com.cheesecake.mafia.data.LiveStage
+import com.cheesecake.mafia.data.TimerData
 import com.cheesecake.mafia.ui.custom.Grid
 import com.cheesecake.mafia.viewModel.SecondScreenViewModel
 import org.koin.compose.koinInject
@@ -38,7 +39,8 @@ fun SecondScreen(
     viewModel: SecondScreenViewModel = koinInject()
 ) {
     val state by viewModel.state.collectAsState()
-    SecondLiveScreen(state)
+    val timer by viewModel.timer.collectAsState()
+    SecondLiveScreen(state, timer)
 }
 
 data class SquareData(
@@ -68,7 +70,7 @@ fun createSquare(count: Int): SquareData {
 }
 
 @Composable
-fun SecondLiveScreen(liveGameData: LiveGameData) {
+fun SecondLiveScreen(liveGameData: LiveGameData, timer: TimerData) {
     val playersCount = if (liveGameData.players.size < 5) return else liveGameData.players.size
     val (top, right, left, bottom) = createSquare(playersCount)
     val stage = liveGameData.stage
@@ -133,6 +135,10 @@ fun SecondLiveScreen(liveGameData: LiveGameData) {
                             Text("Речь", style = MaterialTheme.typography.h6, color = BlackDark)
                         }
                         Text("Игрок ${stage.playerNumber}", style = MaterialTheme.typography.h5, color = BlackDark)
+
+                        if (timer.active) {
+                            Text("${timer.value}s", style = MaterialTheme.typography.h6, color = BlackDark)
+                        }
 
                         Text("Кандидаты", style = MaterialTheme.typography.body1, color = BlackDark)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)) {

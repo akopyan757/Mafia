@@ -12,6 +12,7 @@ import com.cheesecake.mafia.state.HistoryItem
 import com.cheesecake.mafia.data.LiveGameData
 import com.cheesecake.mafia.data.LivePlayerData
 import com.cheesecake.mafia.data.LiveStage
+import com.cheesecake.mafia.data.TimerData
 import com.cheesecake.mafia.repository.LiveGameRepository
 import com.cheesecake.mafia.state.StartGameData
 import com.cheesecake.mafia.state.buildProtocol
@@ -101,8 +102,8 @@ class LiveGameViewModel(
         }
     }
 
-    fun stopGame() {
-        _gameActive.value = false
+    fun onTimerChanged(timer: Int, active: Boolean) {
+        liveGameRepository.updateTimer(TimerData(timer, active && _gameActive.value))
     }
 
     fun changeStateAndNext(

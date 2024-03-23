@@ -159,6 +159,7 @@ fun LiveSpeechPlayerTimerWidget(
             if (isActive && gameActive) {
                 timer -= 1
             }
+            onTimerChanged(timer, isActive)
         }
         timer = seconds
         onFinish()

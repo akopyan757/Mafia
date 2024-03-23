@@ -244,8 +244,6 @@ fun NewGameRole(
     var roleExpanded by remember { mutableStateOf(false) }
     var roleWidth by remember { mutableStateOf(0.dp) }
     val density = LocalDensity.current
-    var menuItemFocusIndex by remember(role, availableRoles) { mutableStateOf(-1) }
-    val focusedRequest = LocalFocusManager.current
 
     Row(
         modifier = modifier.fillMaxHeight(),

@@ -116,6 +116,7 @@ fun LiveGameScreen(
                         stageAction = state.stage,
                         gameActive = gameActive,
                         candidates = state.voteCandidates,
+                        onTimerChanged = viewModel::onTimerChanged,
                         onFinish = { viewModel.changeStateAndNext(historyCached = true) },
                     )
                     if (state.stage is LiveStage.Day.Vote) {
@@ -161,7 +162,7 @@ fun LiveGameScreen(
                     }
                 }
             }
-             Column(
+            Column(
                 modifier = Modifier.width(250.dp).fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -177,7 +178,6 @@ fun LiveGameScreen(
                                 onFinishGame(data.id)
                             }
                         }
-                        //viewModel.stopGame()
                     },
                     redoActive = redoStack.size > 0,
                     undoActive = undoStack.size > 0,
@@ -386,13 +386,14 @@ fun SpeechStateWidget(
     gameActive: Boolean = false,
     stageAction: LiveStage,
     candidates: List<Int> = emptyList(),
+    onTimerChanged: (time: Int, active: Boolean) -> Unit = { _, _ -> },
     onFinish: () -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         when (stageAction) {
-            is LiveStage.Day.LastVotedSpeech -> stageAction.Widget(modifier, gameActive, onFinish)
-            is LiveStage.Day.LastDeathSpeech -> stageAction.Widget(modifier, gameActive, onFinish)
-            is LiveStage.Day.Speech -> stageAction.Widget(modifier, gameActive, onFinish)
+            is LiveStage.Day.LastVotedSpeech -> stageAction.Widget(modifier, gameActive, onTimerChanged, onFinish)
+            is LiveStage.Day.LastDeathSpeech -> stageAction.Widget(modifier, gameActive, onTimerChanged, onFinish)
+            is LiveStage.Day.Speech -> stageAction.Widget(modifier, gameActive, onTimerChanged, onFinish)
             else -> {}
         }
 
@@ -408,6 +409,7 @@ fun SpeechStateWidget(
 fun LiveStage.Day.LastVotedSpeech.Widget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
+    onTimerChanged: (time: Int, active: Boolean) -> Unit = { _, _ -> },
     onFinish: () -> Unit = {},
 ) {
     LiveSpeechPlayerTimerWidget(
@@ -416,6 +418,7 @@ fun LiveStage.Day.LastVotedSpeech.Widget(
         title = "Последнее слово заголосованного",
         playerNumber = playerNumber,
         seconds = playerSpeechTimeSeconds,
+        onTimerChanged = onTimerChanged,
         onFinish = onFinish,
     )
 }
@@ -424,6 +427,7 @@ fun LiveStage.Day.LastVotedSpeech.Widget(
 fun LiveStage.Day.LastDeathSpeech.Widget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
+    onTimerChanged: (time: Int, active: Boolean) -> Unit = { _, _ -> },
     onFinish: () -> Unit = {},
 ) {
     LiveSpeechPlayerTimerWidget(
@@ -432,6 +436,7 @@ fun LiveStage.Day.LastDeathSpeech.Widget(
         title = "Последнее слово умершего",
         playerNumber = playerNumber,
         seconds = playerSpeechTimeSeconds,
+        onTimerChanged = onTimerChanged,
         onFinish = onFinish,
     )
 }
@@ -440,6 +445,7 @@ fun LiveStage.Day.LastDeathSpeech.Widget(
 fun LiveStage.Day.Speech.Widget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
+    onTimerChanged: (time: Int, active: Boolean) -> Unit = { _, _ -> },
     onFinish: () -> Unit = {},
 ) {
     val time = if (candidateForElimination) candidateSpeechTimeSeconds else playerSpeechTimeSeconds
@@ -450,6 +456,7 @@ fun LiveStage.Day.Speech.Widget(
         title = title,
         playerNumber = playerNumber,
         seconds = time,
+        onTimerChanged = onTimerChanged,
         onFinish = onFinish,
     )
 }
