@@ -14,6 +14,7 @@ import com.cheesecake.mafia.components.root.DefaultRootComponent
 import com.cheesecake.mafia.di.databaseModule
 import com.cheesecake.mafia.di.repositoryModule
 import com.cheesecake.mafia.di.viewModelModule
+import com.cheesecake.mafia.ui.second.SecondScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.filter
@@ -32,14 +33,14 @@ fun main() {
     }
 
     application {
-        val windowState = rememberWindowState()
-        LifecycleController(lifecycle, windowState)
         val windowFocusRequestSharedFlow = remember { MutableSharedFlow<WindowType>() }
 
         KoinApplication(application = {
             modules(databaseModule(), repositoryModule(), viewModelModule())
         }) {
             WindowType.entries.forEach { windowType ->
+                val windowState = rememberWindowState()
+                LifecycleController(lifecycle, windowState)
                 key(windowType) {
                     Window(
                         onCloseRequest = ::exitApplication,
@@ -54,7 +55,11 @@ fun main() {
                                 }
                         }
 
-                        App(component = root)
+                        if (windowType == WindowType.First) {
+                            App(component = root)
+                        } else if (windowType == WindowType.Second) {
+                            SecondScreen()
+                        }
                     }
                 }
             }

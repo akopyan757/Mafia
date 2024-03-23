@@ -1,4 +1,4 @@
 enum class WindowType {
     First,
-    //Second,
+    Second,
 }

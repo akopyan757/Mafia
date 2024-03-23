@@ -1,4 +1,4 @@
-package com.cheesecake.mafia.viewModel
+package com.cheesecake.mafia.common
 
 interface Item<K: Any> {
     val key: K

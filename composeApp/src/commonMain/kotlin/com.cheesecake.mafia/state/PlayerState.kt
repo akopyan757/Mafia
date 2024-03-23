@@ -1,7 +1,7 @@
 package com.cheesecake.mafia.state
 
 import com.cheesecake.mafia.data.GamePlayerRole
-import com.cheesecake.mafia.viewModel.Item
+import com.cheesecake.mafia.common.Item
 
 @kotlinx.serialization.Serializable
 data class PlayerState(

@@ -24,8 +24,8 @@ import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
 import com.cheesecake.mafia.data.DayType
-import com.cheesecake.mafia.state.generateHistory
-import com.cheesecake.mafia.state.toText
+import com.cheesecake.mafia.data.generateHistory
+import com.cheesecake.mafia.data.toText
 
 @Composable
 fun GameStanding(

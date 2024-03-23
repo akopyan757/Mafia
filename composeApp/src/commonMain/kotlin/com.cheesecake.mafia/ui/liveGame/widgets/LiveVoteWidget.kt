@@ -37,7 +37,7 @@ import com.cheesecake.mafia.common.VoteColorEnable
 import com.cheesecake.mafia.common.VoteColorZero
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.imageResources
-import com.cheesecake.mafia.state.LiveStage
+import com.cheesecake.mafia.data.LiveStage
 
 private fun SnapshotStateMap<Int, Int>.votedPlayers(): List<Int> {
     val maxVotesValue = values.maxOrNull() ?: 0

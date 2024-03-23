@@ -23,7 +23,7 @@ import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.data.GameActionType
 import com.cheesecake.mafia.data.DayType
 import com.cheesecake.mafia.data.GamePlayerData
-import com.cheesecake.mafia.state.generateHistory
+import com.cheesecake.mafia.data.generateHistory
 import com.cheesecake.mafia.ui.VerticalDivider
 import com.cheesecake.mafia.ui.custom.ActionHistoryItem
 import com.cheesecake.mafia.ui.custom.GameRoleItem

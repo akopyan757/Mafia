@@ -38,11 +38,11 @@ import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.YellowDark
 import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.data.GameActionType
-import com.cheesecake.mafia.state.LivePlayerState
+import com.cheesecake.mafia.data.LivePlayerData
 import com.cheesecake.mafia.data.GamePlayerRole
-import com.cheesecake.mafia.state.LiveStage
+import com.cheesecake.mafia.data.LiveStage
 import com.cheesecake.mafia.data.DayType
-import com.cheesecake.mafia.state.generateHistory
+import com.cheesecake.mafia.data.generateHistory
 import com.cheesecake.mafia.state.primaryColor
 import com.cheesecake.mafia.state.secondaryColor
 import com.cheesecake.mafia.ui.VerticalDivider
@@ -61,7 +61,7 @@ import com.cheesecake.mafia.ui.nightStageColumnWeight
 @Composable
 fun LiveGameItem(
     modifier: Modifier = Modifier,
-    player: LivePlayerState,
+    player: LivePlayerData,
     showRoles: Boolean = true,
     round: Int = 0,
     stage: LiveStage = LiveStage.Start,

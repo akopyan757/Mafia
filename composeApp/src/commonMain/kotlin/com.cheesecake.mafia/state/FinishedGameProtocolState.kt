@@ -4,11 +4,13 @@ import com.cheesecake.mafia.data.GameData
 import com.cheesecake.mafia.data.GameFinishResult
 import com.cheesecake.mafia.data.GamePlayerData
 import com.cheesecake.mafia.data.GamePlayerRole
+import com.cheesecake.mafia.data.LiveGameData
+import com.cheesecake.mafia.data.LivePlayerData
 import kotlin.random.Random
 
 fun buildProtocol(
     startGameData: StartGameData,
-    liveGameState: LiveGameState,
+    liveGameData: LiveGameData,
     finishResult: GameFinishResult,
     totalTime: Long,
 ): GameData {
@@ -17,15 +19,15 @@ fun buildProtocol(
         id = gameId,
         title = startGameData.title,
         date = startGameData.date,
-        players = liveGameState.players.map { it.toPlayerGameData(gameId, finishResult) },
-        lastRound = liveGameState.round,
-        lastDayType = liveGameState.stage.type,
+        players = liveGameData.players.map { it.toPlayerGameData(gameId, finishResult) },
+        lastRound = liveGameData.round,
+        lastDayType = liveGameData.stage.type,
         finishResult = finishResult,
         totalTime = totalTime,
     )
 }
 
-fun LivePlayerState.toPlayerGameData(
+fun LivePlayerData.toPlayerGameData(
     gameId: Long,
     finishResult: GameFinishResult,
 ): GamePlayerData {

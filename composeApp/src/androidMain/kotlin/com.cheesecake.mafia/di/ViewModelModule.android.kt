@@ -10,6 +10,6 @@ import org.koin.dsl.module
 actual fun viewModelModule() = module {
     viewModel { MainViewModel(get(), get()) }
     viewModel { NewGameViewModel(get()) }
-    viewModel { LiveGameViewModel(it.get(), get()) }
+    viewModel { LiveGameViewModel(it.get(), get(), get()) }
     viewModel { FinishedGameViewModel(it.get(), get()) }
 }

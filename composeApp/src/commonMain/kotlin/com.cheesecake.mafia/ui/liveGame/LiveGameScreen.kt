@@ -49,8 +49,8 @@ import com.cheesecake.mafia.components.liveGame.LiveGameComponent
 import com.cheesecake.mafia.data.GameActionType
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
-import com.cheesecake.mafia.state.LivePlayerState
-import com.cheesecake.mafia.state.LiveStage
+import com.cheesecake.mafia.data.LivePlayerData
+import com.cheesecake.mafia.data.LiveStage
 import com.cheesecake.mafia.ui.GameStanding
 import com.cheesecake.mafia.ui.candidateSpeechTimeSeconds
 import com.cheesecake.mafia.ui.liveGame.widgets.LiveDeletePlayerWidget
@@ -235,7 +235,7 @@ data class SelectedNightGameAction(
 @Composable
 fun LiveGameStanding(
     modifier: Modifier = Modifier,
-    items: List<LivePlayerState> = emptyList(),
+    items: List<LivePlayerData> = emptyList(),
     showRoles: Boolean = true,
     showOnlyAlive: Boolean = false,
     round: Int = 0,

@@ -1,6 +1,4 @@
-package com.cheesecake.mafia.state
-
-import com.cheesecake.mafia.data.DayType
+package com.cheesecake.mafia.data
 
 
 sealed class LiveStage(val type: DayType) {

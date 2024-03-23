@@ -1,13 +1,10 @@
-package com.cheesecake.mafia.state
+package com.cheesecake.mafia.data
 
-import com.cheesecake.mafia.data.GameActionType
-import com.cheesecake.mafia.data.GameFinishResult
-import com.cheesecake.mafia.data.GamePlayerRole
-
-data class LiveGameState(
+data class LiveGameData(
     val id: Int = 1,
-    val players: List<LivePlayerState> = emptyList(),
+    val players: List<LivePlayerData> = emptyList(),
     val round: Int = 0,
+    var firstSpeechPlayer: Int = 0,
     val stage: LiveStage = LiveStage.Start,
     val queueStage: List<LiveStage> = emptyList(),
     val voteCandidates: List<Int> = emptyList(),

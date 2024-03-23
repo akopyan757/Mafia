@@ -11,13 +11,21 @@ data class NewGameState(
     val totalPlayers: List<PlayerState> = emptyList(),
     val availablePlayers: List<PlayerState> = emptyList(),
 ) {
-    fun toStartData() = StartGameData(items, date, title)
-
     val isItemsFilled : Boolean
-        get() = items.all { it.role != GamePlayerRole.None && it.player != SelectPlayerState.None }
+        get() = items.all { it.player != SelectPlayerState.None }
+
+    private val filledPlayers: List<NewGamePlayerItem>
+        get() = items.map { item ->
+            if (item.role is GamePlayerRole.None)
+                item.copy(role = GamePlayerRole.Red.Сivilian)
+            else
+                item
+        }
+
+    fun toStartData() = StartGameData(filledPlayers, date, title)
 
     val rolesCount: List<Pair<GamePlayerRole, Int>>
-        get() = items
+        get() = filledPlayers
             .groupBy { it.role }
             .map { (role, items) -> role to items.size }
             .filterNot { (role, count) -> count == 0 || role == GamePlayerRole.None }

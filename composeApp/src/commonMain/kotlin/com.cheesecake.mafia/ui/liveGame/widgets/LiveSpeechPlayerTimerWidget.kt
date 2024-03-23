@@ -2,6 +2,7 @@ package com.cheesecake.mafia.ui.liveGame.widgets
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -35,6 +36,7 @@ fun LiveSpeechPlayerTimerWidget(
     title: String = "",
     playerNumber: Int = 1,
     seconds: Int = 0,
+    onTimerChanged: (time: Int, active: Boolean) -> Unit = { _, _ -> },
     onFinish: () -> Unit = {},
 ) {
     var timer by remember(playerNumber) { mutableStateOf(seconds) }
@@ -74,12 +76,16 @@ fun LiveSpeechPlayerTimerWidget(
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Button(
-                    modifier = Modifier.size(50.dp),
-                    onClick = { timer = seconds },
+                    modifier = Modifier.size(40.dp),
+                    onClick = {
+                        timer = seconds
+                        onTimerChanged(timer, isActive)
+                    },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = BlackDark,
                         contentColor = White
                     ),
+                    contentPadding = PaddingValues(2.dp),
                     content = {
                         Icon(
                             modifier = Modifier.size(24.dp),
@@ -90,12 +96,31 @@ fun LiveSpeechPlayerTimerWidget(
                     },
                 )
                 Button(
-                    modifier = Modifier.size(50.dp),
-                    onClick = { isActive = !isActive },
+                    modifier = Modifier.size(40.dp),
+                    onClick = {
+                        timer = minOf(seconds, timer + 5)
+                        onTimerChanged(timer, isActive)
+                    },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = BlackDark,
                         contentColor = White
                     ),
+                    contentPadding = PaddingValues(2.dp),
+                    content = {
+                        Text(text = "+5s", style = MaterialTheme.typography.body2)
+                    },
+                )
+                Button(
+                    modifier = Modifier.size(40.dp),
+                    onClick = {
+                        isActive = !isActive
+                        onTimerChanged(timer, isActive)
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        backgroundColor = BlackDark,
+                        contentColor = White
+                    ),
+                    contentPadding = PaddingValues(2.dp),
                     content = {
                         Icon(
                             modifier = Modifier.size(24.dp),
@@ -106,12 +131,13 @@ fun LiveSpeechPlayerTimerWidget(
                     },
                 )
                 Button(
-                    modifier = Modifier.size(50.dp),
+                    modifier = Modifier.size(40.dp),
                     onClick = { onFinish() },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = BlackDark,
                         contentColor = White
                     ),
+                    contentPadding = PaddingValues(2.dp),
                     content = {
                         Icon(
                             modifier = Modifier.size(24.dp),
@@ -127,6 +153,7 @@ fun LiveSpeechPlayerTimerWidget(
 
     LaunchedEffect(playerNumber, gameActive) {
         isActive = true
+        onTimerChanged(timer, isActive)
         while (timer > 0) {
             delay(1000)
             if (isActive && gameActive) {

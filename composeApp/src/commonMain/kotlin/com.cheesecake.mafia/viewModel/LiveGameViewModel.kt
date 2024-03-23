@@ -1,16 +1,18 @@
 package com.cheesecake.mafia.viewModel
 
+import com.cheesecake.mafia.common.changeItem
+import com.cheesecake.mafia.common.changeItems
 import com.cheesecake.mafia.data.DayType
 import com.cheesecake.mafia.data.GameAction
 import com.cheesecake.mafia.data.GameActionType
 import com.cheesecake.mafia.data.GameData
 import com.cheesecake.mafia.data.GameFinishResult
 import com.cheesecake.mafia.repository.ManageGameRepository
-import com.cheesecake.mafia.repository.ReadGameRepository
 import com.cheesecake.mafia.state.HistoryItem
-import com.cheesecake.mafia.state.LiveGameState
-import com.cheesecake.mafia.state.LivePlayerState
-import com.cheesecake.mafia.state.LiveStage
+import com.cheesecake.mafia.data.LiveGameData
+import com.cheesecake.mafia.data.LivePlayerData
+import com.cheesecake.mafia.data.LiveStage
+import com.cheesecake.mafia.repository.LiveGameRepository
 import com.cheesecake.mafia.state.StartGameData
 import com.cheesecake.mafia.state.buildProtocol
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
@@ -20,37 +22,40 @@ import kotlinx.coroutines.launch
 
 class LiveGameViewModel(
     private val startGameData: StartGameData,
-    private val manageGameRepository: ManageGameRepository
+    private val manageGameRepository: ManageGameRepository,
+    private val liveGameRepository: LiveGameRepository,
 ): ViewModel() {
 
     companion object {
         const val HISTORY_SIZE = 5
     }
 
-    private val _state = MutableStateFlow(LiveGameState())
+    private val _state = MutableStateFlow(LiveGameData())
     private val _history = MutableStateFlow<List<HistoryItem>>(emptyList())
-    private val _undoStack = MutableStateFlow(ArrayDeque<LiveGameState>(HISTORY_SIZE))
-    private val _redoStack = MutableStateFlow(ArrayDeque<LiveGameState>(HISTORY_SIZE))
+    private val _undoStack = MutableStateFlow(ArrayDeque<LiveGameData>(HISTORY_SIZE))
+    private val _redoStack = MutableStateFlow(ArrayDeque<LiveGameData>(HISTORY_SIZE))
     private val _gameActive = MutableStateFlow(false)
 
-    val state: StateFlow<LiveGameState> get() = _state
+    val state: StateFlow<LiveGameData> get() = _state
     val history: StateFlow<List<HistoryItem>> get() = _history
-    val undoStack: StateFlow<ArrayDeque<LiveGameState>> get() = _undoStack
-    val redoStack: StateFlow<ArrayDeque<LiveGameState>> get() = _redoStack
+    val undoStack: StateFlow<ArrayDeque<LiveGameData>> get() = _undoStack
+    val redoStack: StateFlow<ArrayDeque<LiveGameData>> get() = _redoStack
     val gameActive: StateFlow<Boolean> get() = _gameActive
 
     init {
         val startPlayers = startGameData.items.map { item ->
-            LivePlayerState(item.player.id, item.number, item.player.name, item.role)
+            LivePlayerData(item.player.id, item.number, item.player.name, item.role)
         }
-        val alivePlayers = startPlayers.filter { it.isAlive }
+        val speechPlayers = startPlayers.filter { it.isAlive && !it.isClient }
         val startQueue = _state.value.queueStage
-            .push(alivePlayers.map { LiveStage.Day.Speech(it.number) })
+            .push(speechPlayers.map { LiveStage.Day.Speech(it.number) })
             .push(LiveStage.Day.Vote())
         addHistoryItem(HistoryItem.Start(getStateId()))
         changeStateAndNext(historyCached = false) { state ->
             state.copy(
-                players = startPlayers, queueStage = startQueue,
+                firstSpeechPlayer = speechPlayers.first().number,
+                players = startPlayers,
+                queueStage = startQueue,
             )
         }
     }
@@ -86,10 +91,11 @@ class LiveGameViewModel(
         viewModelScope.launch {
             val data = buildProtocol(
                 startGameData = startGameData,
-                liveGameState = _state.value,
+                liveGameData = _state.value,
                 finishResult = winner,
                 totalTime = time,
             )
+            liveGameRepository.clearLiveState()
             manageGameRepository.insert(data)
             onUploaded(data)
         }
@@ -101,7 +107,7 @@ class LiveGameViewModel(
 
     fun changeStateAndNext(
         historyCached: Boolean = false,
-        transform: ((LiveGameState) -> LiveGameState)? = null
+        transform: ((LiveGameData) -> LiveGameData)? = null
     ) {
         changeState(cached = historyCached) { oldState ->
             val state = transform?.let { it(oldState) } ?: oldState
@@ -186,12 +192,16 @@ class LiveGameViewModel(
     fun acceptNightActions() {
         val nightActions = _state.value.nightActions
         changeStateAndNext(historyCached = true) { state ->
-            val speechPlayers = state.players.filter { it.isAlive && !it.isClient }
-            val queue = state.queueStage
-                .push(state.lastKilledPlayers.map { LiveStage.Day.LastDeathSpeech(it) })
-                .push(speechPlayers.map { LiveStage.Day.Speech(it.number) })
+            val newState = state.copyWithAcceptanceNightActions()
+            var speechPlayers = newState.players.filter { it.isAlive && !it.isClient }.map { it.number }
+            val groups = speechPlayers.groupBy { it <= _state.value.firstSpeechPlayer }
+            speechPlayers = groups[false].orEmpty() + groups[true].orEmpty()
+            val queue = newState.queueStage
+                .push(state.lastKilledPlayers.sorted().map { LiveStage.Day.LastDeathSpeech(it) })
+                .push(speechPlayers.map { LiveStage.Day.Speech(it) })
                 .push(LiveStage.Day.Vote())
-            state.copy(queueStage = queue).copyWithAcceptanceNightActions()
+            val firstSpeech = speechPlayers.firstOrNull() ?: 0
+            newState.copy(queueStage = queue, firstSpeechPlayer = firstSpeech)
         }
         addHistoryItems(
             nightActions.map { (action, playerNumber) ->
@@ -212,7 +222,7 @@ class LiveGameViewModel(
     fun acceptDeletePlayers(skipToNight: Boolean) {
         val numbers = state.value.deleteCandidates
         if (numbers.isEmpty()) return
-        val transform: (LiveGameState) -> LiveGameState = { state ->
+        val transform: (LiveGameData) -> LiveGameData = { state ->
             state.copy(
                 queueStage = if (skipToNight) {
                     listOf(LiveStage.Night())
@@ -258,7 +268,7 @@ class LiveGameViewModel(
         return items.toList() to last
     }
 
-    private fun LiveGameState.copyWithAcceptanceNightActions(): LiveGameState {
+    private fun LiveGameData.copyWithAcceptanceNightActions(): LiveGameData {
         val players = players.toMutableList()
         nightActions.forEach { (nightAction, number) ->
             val index = players.indexOfFirst { it.number == number }
@@ -290,10 +300,12 @@ class LiveGameViewModel(
 
     private fun changeState(
         cached: Boolean = false,
-        transform: (LiveGameState) -> LiveGameState
+        transform: (LiveGameData) -> LiveGameData
     ) {
         val oldState = _state.value
-        _state.value = transform(oldState).incStateId()
+        val newState = transform(oldState).incStateId()
+        _state.value = newState
+        liveGameRepository.saveLiveGame(newState)
         if (cached) {
             val undoHistory = _undoStack.value
             if (undoHistory.size >= HISTORY_SIZE) {
@@ -307,7 +319,7 @@ class LiveGameViewModel(
         }
     }
 
-    private fun LiveGameState.incStateId(): LiveGameState {
+    private fun LiveGameData.incStateId(): LiveGameData {
         return copy(id = id + 1)
     }
 
