@@ -10,7 +10,7 @@ import com.cheesecake.mafia.data.GamePlayerRole
 
 fun GamePlayerRole.primaryColor(): Color {
     return when (this) {
-        is GamePlayerRole.Red.Сivilian -> RedLight
+        is GamePlayerRole.Red.Сivilian -> Red.copy(alpha = 0.9f)
         is GamePlayerRole.Red -> Red
         is GamePlayerRole.Black -> RoleBlack
         is GamePlayerRole.White -> WhiteLight
