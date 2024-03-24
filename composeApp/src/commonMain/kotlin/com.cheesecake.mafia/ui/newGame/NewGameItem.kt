@@ -43,7 +43,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import com.cheesecake.mafia.common.Black
-import com.cheesecake.mafia.common.GreyLight
+import com.cheesecake.mafia.common.GrayLight
 import com.cheesecake.mafia.common.Red
 import com.cheesecake.mafia.common.RussianKey
 import com.cheesecake.mafia.common.White
@@ -135,7 +135,7 @@ fun NewGamePlayer(
     val nameStatusColor = if (player == SelectPlayerState.None && nameState.text.isNotEmpty()) {
         Red
     } else {
-        GreyLight
+        GrayLight
     }
     var menuItemFocusIndex by remember(player, nameState) { mutableStateOf(-1) }
     val dropdownMenuExpanded by derivedStateOf {

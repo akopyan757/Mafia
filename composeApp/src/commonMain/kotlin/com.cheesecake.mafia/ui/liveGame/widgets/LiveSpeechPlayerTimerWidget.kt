@@ -36,7 +36,7 @@ fun LiveSpeechPlayerTimerWidget(
     title: String = "",
     playerNumber: Int = 1,
     seconds: Int = 0,
-    onTimerChanged: (time: Int, active: Boolean) -> Unit = { _, _ -> },
+    onTimerChanged: (time: Int, totalTimer: Int) -> Unit = { _, _ -> },
     onFinish: () -> Unit = {},
 ) {
     var timer by remember(playerNumber) { mutableStateOf(seconds) }
@@ -79,7 +79,7 @@ fun LiveSpeechPlayerTimerWidget(
                     modifier = Modifier.size(40.dp),
                     onClick = {
                         timer = seconds
-                        onTimerChanged(timer, isActive)
+                        onTimerChanged(timer, seconds)
                     },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = BlackDark,
@@ -99,7 +99,7 @@ fun LiveSpeechPlayerTimerWidget(
                     modifier = Modifier.size(40.dp),
                     onClick = {
                         timer = minOf(seconds, timer + 5)
-                        onTimerChanged(timer, isActive)
+                        onTimerChanged(timer, seconds)
                     },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = BlackDark,
@@ -114,7 +114,7 @@ fun LiveSpeechPlayerTimerWidget(
                     modifier = Modifier.size(40.dp),
                     onClick = {
                         isActive = !isActive
-                        onTimerChanged(timer, isActive)
+                        onTimerChanged(timer, seconds)
                     },
                     colors = ButtonDefaults.buttonColors(
                         backgroundColor = BlackDark,
@@ -153,13 +153,13 @@ fun LiveSpeechPlayerTimerWidget(
 
     LaunchedEffect(playerNumber, gameActive) {
         isActive = true
-        onTimerChanged(timer, isActive)
+        onTimerChanged(timer, seconds)
         while (timer > 0) {
             delay(1000)
             if (isActive && gameActive) {
                 timer -= 1
             }
-            onTimerChanged(timer, isActive)
+            onTimerChanged(timer, seconds)
         }
         timer = seconds
         onFinish()

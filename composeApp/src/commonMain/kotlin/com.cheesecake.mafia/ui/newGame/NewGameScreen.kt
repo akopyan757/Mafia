@@ -191,7 +191,7 @@ fun NewGamePlayerCount(
         IntCounter(
             modifier = modifier.width(180.dp).height(50.dp),
             minValue = 5,
-            maxValue = 25,
+            maxValue = 20,
             stepValue = 1,
             startValue = startValue,
             onValueChanged = onValueChanged,

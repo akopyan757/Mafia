@@ -3,6 +3,8 @@ package com.cheesecake.mafia.viewModel
 import com.cheesecake.mafia.data.PlayerData
 import com.cheesecake.mafia.repository.PlayerRepository
 import com.cheesecake.mafia.data.GamePlayerRole
+import com.cheesecake.mafia.data.InteractiveScreenState
+import com.cheesecake.mafia.repository.InteractiveGameRepository
 import com.cheesecake.mafia.state.NewGamePlayerItem
 import com.cheesecake.mafia.state.NewGameState
 import com.cheesecake.mafia.state.PlayerState
@@ -14,7 +16,8 @@ import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class NewGameViewModel(
-    private val repository: PlayerRepository
+    private val repository: PlayerRepository,
+    private val interactiveGameRepository: InteractiveGameRepository,
 ): ViewModel() {
 
     companion object {
@@ -25,11 +28,12 @@ class NewGameViewModel(
     val state: StateFlow<NewGameState> get() = _state
 
     init {
+        interactiveGameRepository.saveState(InteractiveScreenState.Main)
         val existPlayers = repository.selectAll().map { PlayerState(it.id, it.name) }
         _state.value = NewGameState(
             title = "Игра",
             items = List(DEFAULT_GAME_COUNT) { index ->
-                NewGamePlayerItem(index + 1, SelectPlayerState.None, GamePlayerRole.None)
+                NewGamePlayerItem(index + 1, SelectPlayerState.Exist(existPlayers[index]), GamePlayerRole.None)
             },
             totalPlayers = existPlayers,
             availablePlayers = existPlayers,

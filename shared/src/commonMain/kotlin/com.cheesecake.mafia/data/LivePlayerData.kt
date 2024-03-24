@@ -10,6 +10,8 @@ data class LivePlayerData(
     val isAlive: Boolean = true,
     val isDeleted: Boolean = false,
     val isClient: Boolean = false,
+    val isVoted: Boolean = false,
+    val isKilled: Boolean = false,
     val actions: List<GameAction> = emptyList(),
     val fouls: Int = 0,
 ): Item<Int> {

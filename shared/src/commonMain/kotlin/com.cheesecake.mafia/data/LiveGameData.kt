@@ -10,6 +10,9 @@ data class LiveGameData(
     val voteCandidates: List<Int> = emptyList(),
     val nightActions: Map<GameActionType.NightActon, Int> = emptyMap(),
 ) {
+    val isVoteMissing: Boolean
+        get() = voteCandidates.isEmpty() || (voteCandidates.size == 1 && round == 0)
+
     val winner: GameFinishResult?
         get() {
             val whiteCount = players.filter { it.role is GamePlayerRole.White && it.isAlive }.size

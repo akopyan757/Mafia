@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
 import com.cheesecake.mafia.common.BlackDark
-import com.cheesecake.mafia.common.GreyLight
+import com.cheesecake.mafia.common.GrayLight
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.WhiteLight
 import com.cheesecake.mafia.common.imageResources
@@ -339,7 +339,7 @@ fun LiveGameRolesWidget(
                 onCheckedChange = onShowRolesChanged,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = BlackDark,
-                    checkedTrackColor = GreyLight,
+                    checkedTrackColor = GrayLight,
                     uncheckedThumbColor = WhiteLight,
                     uncheckedTrackColor = White,
                 )
@@ -371,7 +371,7 @@ fun LiveGameAliveWidget(
                 onCheckedChange = onShowOnlyAliveChanged,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = BlackDark,
-                    checkedTrackColor = GreyLight,
+                    checkedTrackColor = GrayLight,
                     uncheckedThumbColor = WhiteLight,
                     uncheckedTrackColor = White,
                 )
@@ -386,7 +386,7 @@ fun SpeechStateWidget(
     gameActive: Boolean = false,
     stageAction: LiveStage,
     candidates: List<Int> = emptyList(),
-    onTimerChanged: (time: Int, active: Boolean) -> Unit = { _, _ -> },
+    onTimerChanged: (time: Int, totalTimer: Int) -> Unit = { _, _ -> },
     onFinish: () -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -409,7 +409,7 @@ fun SpeechStateWidget(
 fun LiveStage.Day.LastVotedSpeech.Widget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
-    onTimerChanged: (time: Int, active: Boolean) -> Unit = { _, _ -> },
+    onTimerChanged: (time: Int, totalTimer: Int) -> Unit = { _, _ -> },
     onFinish: () -> Unit = {},
 ) {
     LiveSpeechPlayerTimerWidget(
@@ -427,7 +427,7 @@ fun LiveStage.Day.LastVotedSpeech.Widget(
 fun LiveStage.Day.LastDeathSpeech.Widget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
-    onTimerChanged: (time: Int, active: Boolean) -> Unit = { _, _ -> },
+    onTimerChanged: (time: Int, totalTimer: Int) -> Unit = { _, _ -> },
     onFinish: () -> Unit = {},
 ) {
     LiveSpeechPlayerTimerWidget(
@@ -445,7 +445,7 @@ fun LiveStage.Day.LastDeathSpeech.Widget(
 fun LiveStage.Day.Speech.Widget(
     modifier: Modifier = Modifier,
     gameActive: Boolean = false,
-    onTimerChanged: (time: Int, active: Boolean) -> Unit = { _, _ -> },
+    onTimerChanged: (time: Int, totalTimer: Int) -> Unit = { _, _ -> },
     onFinish: () -> Unit = {},
 ) {
     val time = if (candidateForElimination) candidateSpeechTimeSeconds else playerSpeechTimeSeconds

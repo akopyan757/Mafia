@@ -12,8 +12,9 @@ import com.cheesecake.mafia.state.HistoryItem
 import com.cheesecake.mafia.data.LiveGameData
 import com.cheesecake.mafia.data.LivePlayerData
 import com.cheesecake.mafia.data.LiveStage
+import com.cheesecake.mafia.data.InteractiveScreenState
 import com.cheesecake.mafia.data.TimerData
-import com.cheesecake.mafia.repository.LiveGameRepository
+import com.cheesecake.mafia.repository.InteractiveGameRepository
 import com.cheesecake.mafia.state.StartGameData
 import com.cheesecake.mafia.state.buildProtocol
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
@@ -24,11 +25,11 @@ import kotlinx.coroutines.launch
 class LiveGameViewModel(
     private val startGameData: StartGameData,
     private val manageGameRepository: ManageGameRepository,
-    private val liveGameRepository: LiveGameRepository,
+    private val interactiveGameRepository: InteractiveGameRepository,
 ): ViewModel() {
 
     companion object {
-        const val HISTORY_SIZE = 5
+        const val HISTORY_SIZE = 15
     }
 
     private val _state = MutableStateFlow(LiveGameData())
@@ -96,14 +97,15 @@ class LiveGameViewModel(
                 finishResult = winner,
                 totalTime = time,
             )
-            liveGameRepository.clearLiveState()
+            interactiveGameRepository.clearState()
             manageGameRepository.insert(data)
             onUploaded(data)
         }
     }
 
-    fun onTimerChanged(timer: Int, active: Boolean) {
-        liveGameRepository.updateTimer(TimerData(timer, active && _gameActive.value))
+    fun onTimerChanged(timer: Int, totalTimer: Int) {
+        val active = _state.value.stage.isSpeech && _gameActive.value
+        interactiveGameRepository.updateTimer(TimerData(timer, totalTimer, active))
     }
 
     fun changeStateAndNext(
@@ -114,9 +116,15 @@ class LiveGameViewModel(
             val state = transform?.let { it(oldState) } ?: oldState
             val (queue, currentStage) = state.queueStage.popFirst()
             currentStage?.let {
-                return@let if (currentStage is LiveStage.Day.Vote) {
-                    if (state.voteCandidates.isEmpty()) {
-                        state.copy(queueStage = queue, stage = LiveStage.Night())
+                return@let if (currentStage is LiveStage.Day.Vote && state.isVoteMissing) {
+                    if (state.isVoteMissing) {
+                        val players = state.players.map { player -> player.copy(isClient = false) }
+                        state.copy(
+                            queueStage = queue,
+                            stage = LiveStage.Night(),
+                            round = state.round + 1,
+                            players = players
+                        )
                     } else {
                         state.copy(queueStage = queue, stage = currentStage.copy(candidates = state.voteCandidates))
                     }
@@ -170,6 +178,7 @@ class LiveGameViewModel(
                 players = state.players.changeItems(votedPlayers) { player ->
                     player.copy(
                         isAlive = false,
+                        isVoted = true,
                         actions = player.actions + listOf(
                             GameAction(state.round, GameActionType.DayAction.Voted),
                             GameAction(state.round + 1, GameActionType.Dead(DayType.Day))
@@ -281,6 +290,7 @@ class LiveGameViewModel(
                         + listOf(GameAction(round, nightAction)) +
                         if (isKilled) listOf(GameAction(round, GameActionType.Dead(DayType.Night))) else emptyList(),
                     isClient = player.number == lastClientPlayer,
+                    isKilled = player.isKilled || isKilled,
                     isAlive = player.isAlive && player.number !in lastKilledPlayers,
                 )
             }
@@ -306,7 +316,7 @@ class LiveGameViewModel(
         val oldState = _state.value
         val newState = transform(oldState).incStateId()
         _state.value = newState
-        liveGameRepository.saveLiveGame(newState)
+        interactiveGameRepository.saveState(InteractiveScreenState.LiveGame(newState))
         if (cached) {
             val undoHistory = _undoStack.value
             if (undoHistory.size >= HISTORY_SIZE) {

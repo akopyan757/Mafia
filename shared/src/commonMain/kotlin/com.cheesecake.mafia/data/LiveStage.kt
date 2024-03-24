@@ -6,19 +6,24 @@ sealed class LiveStage(val type: DayType) {
     data object Start: LiveStage(DayType.Night)
 
     sealed class Day : LiveStage(DayType.Day) {
-        data class LastDeathSpeech(val playerNumber: Int): Day()
-        data class LastVotedSpeech(val playerNumber: Int): Day()
+        data class LastDeathSpeech(override val playerNumber: Int): Day()
+        data class LastVotedSpeech(override val playerNumber: Int): Day()
         data class Speech(
-            val playerNumber: Int,
+            override val playerNumber: Int,
             val candidateForElimination: Boolean = false,
         ): Day()
         data class Vote(
             val reVote: Boolean = false,
             val candidates: List<Int> = emptyList(),
         ): Day()
+
+        override val isSpeech = this !is Vote
     }
 
     class Night : LiveStage(DayType.Night)
+
+    open val isSpeech: Boolean = false
+    open val playerNumber: Int = -1
 
     fun canAddCandidate(): Boolean {
         return this is Day.Speech && !this.candidateForElimination
