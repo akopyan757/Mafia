@@ -13,7 +13,6 @@ import com.cheesecake.mafia.data.LiveGameData
 import com.cheesecake.mafia.data.LivePlayerData
 import com.cheesecake.mafia.data.LiveStage
 import com.cheesecake.mafia.data.InteractiveScreenState
-import com.cheesecake.mafia.data.TimerData
 import com.cheesecake.mafia.repository.InteractiveGameRepository
 import com.cheesecake.mafia.state.StartGameData
 import com.cheesecake.mafia.state.buildProtocol
@@ -27,7 +26,6 @@ class LiveGameViewModel(
     private val manageGameRepository: ManageGameRepository,
     private val interactiveGameRepository: InteractiveGameRepository,
 ): ViewModel() {
-
     companion object {
         const val HISTORY_SIZE = 15
     }
@@ -37,12 +35,19 @@ class LiveGameViewModel(
     private val _undoStack = MutableStateFlow(ArrayDeque<LiveGameData>(HISTORY_SIZE))
     private val _redoStack = MutableStateFlow(ArrayDeque<LiveGameData>(HISTORY_SIZE))
     private val _gameActive = MutableStateFlow(false)
+    private val _showInteractive = MutableStateFlow(true)
+    private val _showInteractiveCandidates = MutableStateFlow(true)
+    private val _showInteractiveTimer = MutableStateFlow(true)
 
     val state: StateFlow<LiveGameData> get() = _state
     val history: StateFlow<List<HistoryItem>> get() = _history
     val undoStack: StateFlow<ArrayDeque<LiveGameData>> get() = _undoStack
     val redoStack: StateFlow<ArrayDeque<LiveGameData>> get() = _redoStack
     val gameActive: StateFlow<Boolean> get() = _gameActive
+    val showInteractive: StateFlow<Boolean> get() = _showInteractive
+    val showInteractiveCandidates: StateFlow<Boolean> get() = _showInteractiveCandidates
+    val showInteractiveTimer: StateFlow<Boolean> get() = _showInteractiveTimer
+
 
     init {
         val startPlayers = startGameData.items.map { item ->
@@ -103,9 +108,30 @@ class LiveGameViewModel(
         }
     }
 
+    fun showInteractive(value: Boolean) {
+        _showInteractive.value = value
+        val settings = interactiveGameRepository.getSettings().copy(showInteractive = value)
+        interactiveGameRepository.updateSettings(settings)
+    }
+
+    fun showInteractiveTimer(value: Boolean) {
+        _showInteractiveTimer.value = value
+        val settings = interactiveGameRepository.getSettings().copy(showTimer = value)
+        interactiveGameRepository.updateSettings(settings)
+    }
+
+    fun showInteractiveCandidates(value: Boolean) {
+        _showInteractiveCandidates.value = value
+        val settings = interactiveGameRepository.getSettings().copy(showCandidates = value)
+        interactiveGameRepository.updateSettings(settings)
+    }
+
     fun onTimerChanged(timer: Int, totalTimer: Int) {
-        val active = _state.value.stage.isSpeech && _gameActive.value
-        interactiveGameRepository.updateTimer(TimerData(timer, totalTimer, active))
+        val settings = interactiveGameRepository.getSettings()
+        val newSettings = settings.copy(
+            timeValue = timer, timerTotal = totalTimer
+        )
+        interactiveGameRepository.updateSettings(newSettings)
     }
 
     fun changeStateAndNext(

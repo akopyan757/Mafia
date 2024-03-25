@@ -1,7 +1,7 @@
 package com.cheesecake.mafia.repository
 
 import com.cheesecake.mafia.data.InteractiveScreenState
-import com.cheesecake.mafia.data.TimerData
+import com.cheesecake.mafia.data.SettingsData
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.filterNotNull
 internal class InteractiveGameRepositoryImpl: InteractiveGameRepository {
 
     private val _state = MutableStateFlow<InteractiveScreenState>(InteractiveScreenState.None)
-    private val _timer = MutableStateFlow(TimerData(0, 60, false))
+    private val _settings = MutableStateFlow(SettingsData())
 
     override fun saveState(data: InteractiveScreenState) {
         _state.value = data
@@ -23,11 +23,13 @@ internal class InteractiveGameRepositoryImpl: InteractiveGameRepository {
         _state.value = InteractiveScreenState.None
     }
 
-    override fun updateTimer(data: TimerData) {
-        _timer.value = data
+    override fun updateSettings(data: SettingsData) {
+        _settings.value = data
     }
 
-    override fun listenTimer() = _timer
+    override fun getSettings(): SettingsData {
+        return _settings.value
+    }
 
-
+    override fun listenSettings() = _settings
 }

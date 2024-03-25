@@ -33,7 +33,7 @@ class NewGameViewModel(
         _state.value = NewGameState(
             title = "Игра",
             items = List(DEFAULT_GAME_COUNT) { index ->
-                NewGamePlayerItem(index + 1, SelectPlayerState.Exist(existPlayers[index]), GamePlayerRole.None)
+                NewGamePlayerItem(index + 1, SelectPlayerState.None, GamePlayerRole.None)
             },
             totalPlayers = existPlayers,
             availablePlayers = existPlayers,

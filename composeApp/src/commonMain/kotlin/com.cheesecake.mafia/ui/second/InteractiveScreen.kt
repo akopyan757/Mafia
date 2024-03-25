@@ -6,10 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -23,14 +21,11 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
-import com.cheesecake.mafia.common.Blue
 import com.cheesecake.mafia.common.LogoTint
 import com.cheesecake.mafia.common.PlayersColors
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.data.InteractiveScreenState
-import com.cheesecake.mafia.data.TimerData
-import com.cheesecake.mafia.state.SquareData
 import com.cheesecake.mafia.viewModel.InteractiveScreenViewModel
 import org.koin.compose.koinInject
 
@@ -39,9 +34,11 @@ fun InteractiveScreen(
     viewModel: InteractiveScreenViewModel = koinInject()
 ) {
     val state by viewModel.state.collectAsState()
-    val timer by viewModel.timer.collectAsState()
-    if (state is InteractiveScreenState.LiveGame) {
-        InteractiveLiveScreen((state as InteractiveScreenState.LiveGame).state, timer)
+    val settings by viewModel.settings.collectAsState()
+    if (!settings.showInteractive) {
+        InteractiveNewGameScreen()
+    } else if (state is InteractiveScreenState.LiveGame) {
+        InteractiveLiveScreen((state as InteractiveScreenState.LiveGame).state, settings)
     } else {
         val gameData = (state as? InteractiveScreenState.FinishGame)?.state
         if (gameData != null) {

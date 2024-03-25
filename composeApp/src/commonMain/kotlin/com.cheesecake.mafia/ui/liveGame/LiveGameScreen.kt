@@ -81,6 +81,9 @@ fun LiveGameScreen(
     val undoStack by viewModel.undoStack.collectAsState()
     val redoStack by viewModel.redoStack.collectAsState()
     val gameActive by viewModel.gameActive.collectAsState()
+    val showInteractive by viewModel.showInteractive.collectAsState()
+    val showInteractiveTimer by viewModel.showInteractiveTimer.collectAsState()
+    val showInteractiveCandidates by viewModel.showInteractiveCandidates.collectAsState()
     var showRoles by remember { mutableStateOf(true) }
     var showOnlyAlive by remember { mutableStateOf(false) }
     var actionSelections by remember { mutableStateOf(mapOf<GameActionType.NightActon, Int>()) }
@@ -140,15 +143,36 @@ fun LiveGameScreen(
                         modifier = Modifier.width(280.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        LiveGameRolesWidget(
+                        LiveSwitcherWidget(
                             modifier = Modifier.fillMaxWidth(),
-                            showRoles = showRoles,
-                            onShowRolesChanged = { showRoles = it },
+                            title = "Роли",
+                            checked = showRoles,
+                            onCheckedChanged = { showRoles = it },
                         )
-                        LiveGameAliveWidget(
+                        LiveSwitcherWidget(
                             modifier = Modifier.fillMaxWidth(),
-                            showOnlyAlive = showOnlyAlive,
-                            onShowOnlyAliveChanged = { showOnlyAlive = it },
+                            title = "Только живые",
+                            checked = showOnlyAlive,
+                            onCheckedChanged = { showOnlyAlive = it },
+                        )
+                        LiveSwitcherWidget(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Интерактив",
+                            checked = showInteractive,
+                            onCheckedChanged = { viewModel.showInteractive(it) },
+                        )
+
+                        LiveSwitcherWidget(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Интерактив: Время",
+                            checked = showInteractiveTimer,
+                            onCheckedChanged = { viewModel.showInteractiveTimer(it) },
+                        )
+                        LiveSwitcherWidget(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = "Интерактив: Кандидаты",
+                            checked = showInteractiveCandidates,
+                            onCheckedChanged = { viewModel.showInteractiveCandidates(it) },
                         )
                     }
                     val deletePlayersCandidates = state.deleteCandidates
@@ -348,10 +372,11 @@ fun LiveGameRolesWidget(
     }
 }
 @Composable
-fun LiveGameAliveWidget(
+fun LiveSwitcherWidget(
     modifier: Modifier = Modifier,
-    showOnlyAlive: Boolean,
-    onShowOnlyAliveChanged: (Boolean) -> Unit,
+    title: String,
+    checked: Boolean,
+    onCheckedChanged: (Boolean) -> Unit,
 ) {
     Card(
         shape = RoundedCornerShape(8.dp),
@@ -363,12 +388,12 @@ fun LiveGameAliveWidget(
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
-                text = "Показать только живых",
+                text = title,
                 style = MaterialTheme.typography.body1,
             )
             Switch(
-                checked = showOnlyAlive,
-                onCheckedChange = onShowOnlyAliveChanged,
+                checked = checked,
+                onCheckedChange = onCheckedChanged,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = BlackDark,
                     checkedTrackColor = GrayLight,

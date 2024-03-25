@@ -12,10 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -29,7 +27,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.cheesecake.mafia.common.Blue
 import com.cheesecake.mafia.common.GrayLight
 import com.cheesecake.mafia.common.LogoTint
 import com.cheesecake.mafia.common.White
@@ -37,10 +34,8 @@ import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.data.GameData
 import com.cheesecake.mafia.data.GameFinishResult
 import com.cheesecake.mafia.data.GamePlayerData
-import com.cheesecake.mafia.data.TimerData
 import com.cheesecake.mafia.state.primaryColor
 import com.cheesecake.mafia.state.secondaryColor
-import com.cheesecake.mafia.ui.custom.GameRoleItem
 import com.cheesecake.mafia.ui.custom.Grid
 
 @Composable

@@ -39,12 +39,11 @@ import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.data.LiveGameData
 import com.cheesecake.mafia.data.LivePlayerData
 import com.cheesecake.mafia.data.LiveStage
-import com.cheesecake.mafia.data.TimerData
-import com.cheesecake.mafia.state.SquareData
+import com.cheesecake.mafia.data.SettingsData
 import com.cheesecake.mafia.ui.custom.Grid
 
 @Composable
-fun InteractiveLiveScreen(liveGameData: LiveGameData, timer: TimerData) {
+fun InteractiveLiveScreen(liveGameData: LiveGameData, settings: SettingsData) {
     val playersCount = liveGameData.players.size
     val (top, right, left, bottom) = createSquare(playersCount)
     val stage = liveGameData.stage
@@ -139,16 +138,16 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, timer: TimerData) {
                                     number = stage.playerNumber,
                                 )
                             }
-                            if (right.size == 1) {
-                                TimerWidget(timer)
+                            if (right.size == 1 && settings.showTimer) {
+                                TimerWidget(settings)
                             }
                         }
 
-                        if (right.size > 1) {
-                            TimerWidget(timer)
+                        if (right.size > 1 && settings.showTimer) {
+                            TimerWidget(settings)
                         }
 
-                        if (liveGameData.voteCandidates.isNotEmpty() && stage is LiveStage.Day.Speech) {
+                        if (settings.showCandidates && liveGameData.voteCandidates.isNotEmpty() && stage is LiveStage.Day.Speech) {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(
                                     text = "Выставленные кандидатуры",
@@ -204,17 +203,17 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, timer: TimerData) {
 
 
 @Composable
-private fun TimerWidget(timer: TimerData) {
-    if (timer.active) {
+private fun TimerWidget(timer: SettingsData) {
+    if (timer.showTimer) {
         Box(modifier = Modifier.size(120.dp)) {
             CircularProgressIndicator(
                 modifier = Modifier.fillMaxSize(),
-                progress = timer.value / timer.total.toFloat(),
+                progress = timer.timeValue / timer.timerTotal.toFloat(),
                 color = Blue.copy(0.7f),
                 strokeWidth = 10.dp,
             )
             Text(
-                text = timer.value.toString(),
+                text = timer.timeValue.toString(),
                 style = MaterialTheme.typography.h3,
                 color = White,
                 modifier = Modifier.align(Alignment.Center)
