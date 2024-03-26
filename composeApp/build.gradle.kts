@@ -80,13 +80,8 @@ android {
             jvmTarget = "17"
         }
     }
-    sourceSets {
-        named("main") {
-            manifest.srcFile("src/androidMain/AndroidManifest.xml")
-            res.srcDirs("src/androidMain/res")
-            resources.srcDirs("src/commonMain/resources")
-        }
-    }
+    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    sourceSets["main"].res.srcDirs("src/androidMain/res", "src/commonMain/resources")
 
     defaultConfig {
         applicationId = "com.cheesecake.mafia.android"

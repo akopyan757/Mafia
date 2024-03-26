@@ -7,8 +7,8 @@ import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 actual fun fontFamily(): FontFamily = FontFamily(
-    fontResources("ubuntu.xml", FontWeight.Light, FontStyle.Normal),
-    fontResources("ubuntu_regular.xml", FontWeight.Normal, FontStyle.Normal),
-    fontResources("ubuntu_medium.xml", FontWeight.Medium, FontStyle.Normal),
-    fontResources("ubuntu_bold.xml", FontWeight.Bold, FontStyle.Normal),
+    fontResources("ubuntu_light.ttf", FontWeight.Light, FontStyle.Normal),
+    fontResources("ubuntu_regular.ttf", FontWeight.Normal, FontStyle.Normal),
+    fontResources("ubuntu_medium.ttf", FontWeight.Medium, FontStyle.Normal),
+    fontResources("ubuntu_bold.ttf", FontWeight.Bold, FontStyle.Normal),
 )

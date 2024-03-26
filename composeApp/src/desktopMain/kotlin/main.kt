@@ -10,6 +10,7 @@ import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.ExperimentalDecomposeApi
 import com.arkivanov.decompose.extensions.compose.jetbrains.lifecycle.LifecycleController
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.cheesecake.mafia.common.ProjectTheme
 import com.cheesecake.mafia.components.root.DefaultRootComponent
 import com.cheesecake.mafia.di.databaseModule
 import com.cheesecake.mafia.di.networkModule
@@ -56,10 +57,12 @@ fun main() {
                                 }
                         }
 
-                        if (windowType == WindowType.First) {
-                            RootAdminScreen(component = root)
-                        } else if (windowType == WindowType.Second) {
-                            InteractiveScreen()
+                        ProjectTheme {
+                            if (windowType == WindowType.First) {
+                                RootAdminScreen(component = root)
+                            } else if (windowType == WindowType.Second) {
+                                InteractiveScreen()
+                            }
                         }
                     }
                 }

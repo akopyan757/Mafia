@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.cheesecake.mafia.common.ProjectTheme
 import com.cheesecake.mafia.components.root.DefaultRootComponent
 import com.cheesecake.mafia.ui.root.RootUserScreen
 
@@ -16,7 +17,9 @@ class MainActivity : ComponentActivity() {
             componentContext = DefaultComponentContext(lifecycle = lifecycle),
         )
         setContent {
-            RootUserScreen(root)
+            ProjectTheme {
+                RootUserScreen(root)
+            }
         }
     }
 }

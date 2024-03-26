@@ -3,6 +3,7 @@ package com.cheesecake.mafia.common
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
@@ -10,6 +11,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.createFontFamilyResolver
 
 @Composable
 actual fun imageResources(imageRes: String): Painter {
@@ -21,7 +23,8 @@ actual fun imageResources(imageRes: String): Painter {
 @Composable
 actual fun fontResources(fontRes: String, weight: FontWeight, style: FontStyle): Font {
     val context = LocalContext.current
-    val id = context.resIdByName(fontRes, "font")
+    val name = fontRes.substringBefore(".")
+    val id = context.resources.getIdentifier(name, "font", context.packageName)
     return Font(id, weight, style)
 }
 
