@@ -4,6 +4,7 @@ import com.cheesecake.mafia.common.ApiResult
 import com.cheesecake.mafia.data.GameData
 import com.cheesecake.mafia.data.InteractiveScreenState
 import com.cheesecake.mafia.repository.InteractiveGameRepository
+import com.cheesecake.mafia.repository.ManageGameRepository
 import com.cheesecake.mafia.repository.ReadGameRepository
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ import kotlinx.coroutines.launch
 class FinishedGameViewModel(
     private val gameId: Long,
     private val gameRepository: ReadGameRepository,
+    private val manageGameRepository: ManageGameRepository,
     private val interactiveGameRepository: InteractiveGameRepository,
 ): ViewModel() {
 
@@ -30,6 +32,12 @@ class FinishedGameViewModel(
                 interactiveGameRepository.saveState(InteractiveScreenState.FinishGame(null))
                 ApiResult.Error(Throwable("Empty"))
             }
+        }
+    }
+
+    fun deleteGame() {
+        viewModelScope.launch {
+            manageGameRepository.deleteById(gameId)
         }
     }
 }

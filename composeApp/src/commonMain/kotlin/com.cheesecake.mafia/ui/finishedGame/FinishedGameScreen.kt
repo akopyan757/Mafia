@@ -3,11 +3,14 @@ package com.cheesecake.mafia.ui.finishedGame
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -15,13 +18,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
 import com.cheesecake.mafia.common.ApiResult
 import com.cheesecake.mafia.common.BlackDark
+import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.components.finishedGame.FinishedGameComponent
 import com.cheesecake.mafia.data.GameData
 import com.cheesecake.mafia.data.GameFinishResult
+import com.cheesecake.mafia.data.resultText
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
 import com.cheesecake.mafia.ui.GameStanding
@@ -53,12 +59,6 @@ fun FinishedGameScreen(
         }
     } else if (result is ApiResult.Success<GameData>) {
         val protocol = (result as ApiResult.Success<GameData>).data
-        val text = when (protocol.finishResult) {
-            GameFinishResult.BlackWin -> "Победа мафии"
-            GameFinishResult.RedWin -> "Победа мирного города"
-            GameFinishResult.WhiteWin -> "Победа маньяка"
-            else -> ""
-        }
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -71,10 +71,26 @@ fun FinishedGameScreen(
                     Text(text = "Назад", style = MaterialTheme.typography.body1, color = Color.White)
                 }
                 Text(
-                    text = text,
+                    text = protocol.finishResult.resultText(),
                     style = MaterialTheme.typography.h5,
                     color = BlackDark,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.weight(1f)
                 )
+                Button(
+                    onClick = {
+                        viewModel.deleteGame()
+                        onBackPressed()
+                    },
+                    contentPadding = PaddingValues(2.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                ) {
+                    Icon(
+                        painter = imageResources("ic_delete.xml"),
+                        contentDescription = null,
+                        tint = Color.White,
+                    )
+                }
             }
             GameStanding(
                 modifier = Modifier,

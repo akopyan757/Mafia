@@ -23,6 +23,15 @@ enum class GameFinishResult(val value: String) {
     }
 }
 
+fun GameFinishResult.resultText(): String {
+    return when (this) {
+        GameFinishResult.BlackWin -> "Победа мафии"
+        GameFinishResult.RedWin -> "Победа мирного города"
+        GameFinishResult.WhiteWin -> "Победа маньяка"
+        else -> ""
+    }
+}
+
 @Suppress("EXTERNAL_SERIALIZER_USELESS")
 @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
 @Serializer(forClass = DayType::class)

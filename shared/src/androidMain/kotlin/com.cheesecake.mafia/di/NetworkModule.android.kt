@@ -13,7 +13,7 @@ actual fun networkModule() = module {
             defaultRequest {
                 url {
                     protocol = URLProtocol.HTTP
-                    host = Const.BASE_URL
+                    host = Const.EMULATOR_URL
                 }
             }
         }

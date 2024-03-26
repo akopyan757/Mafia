@@ -1,4 +1,3 @@
-import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -16,7 +15,8 @@ kotlin {
             }
         }
     }
-    
+
+    jvmToolchain(17)
     jvm("desktop")
     
     listOf(
@@ -38,9 +38,10 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
-            implementation("io.insert-koin:koin-android:3.2.0")
+            implementation("io.insert-koin:koin-android:3.5.3")
          }
         commonMain.dependencies {
+            //implementation(project(":composeApp"))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
@@ -74,7 +75,11 @@ kotlin {
 android {
     namespace = "com.cheesecake.mafia"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
-
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
+    }
     sourceSets {
         named("main") {
             manifest.srcFile("src/androidMain/AndroidManifest.xml")
@@ -98,14 +103,12 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    dependencies {
-
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
@@ -126,7 +129,6 @@ compose.experimental {
 }
 
 dependencies {
-    implementation(project(":composeApp"))
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.protolite.well.known.types)
     implementation(libs.androidx.core.i18n)

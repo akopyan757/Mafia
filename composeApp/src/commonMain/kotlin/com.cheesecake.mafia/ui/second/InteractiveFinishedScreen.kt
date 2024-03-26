@@ -32,8 +32,8 @@ import com.cheesecake.mafia.common.LogoTint
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.data.GameData
-import com.cheesecake.mafia.data.GameFinishResult
 import com.cheesecake.mafia.data.GamePlayerData
+import com.cheesecake.mafia.data.resultText
 import com.cheesecake.mafia.state.primaryColor
 import com.cheesecake.mafia.state.secondaryColor
 import com.cheesecake.mafia.ui.custom.Grid
@@ -77,14 +77,8 @@ fun InteractiveFinishedScreen(gameData: GameData) {
             Box(
                 modifier = Modifier.span(columns = top.size - 2, rows = left.size),
             ) {
-                val text = when (gameData.finishResult) {
-                    GameFinishResult.BlackWin -> "Победа мафии"
-                    GameFinishResult.RedWin -> "Победа мирного города"
-                    GameFinishResult.WhiteWin -> "Победа маньяка"
-                    else -> ""
-                }
                 Text(
-                    text = text,
+                    text = gameData.finishResult.resultText(),
                     style = MaterialTheme.typography.h3,
                     color = White,
                     modifier = Modifier.align(Alignment.Center)

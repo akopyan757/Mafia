@@ -15,6 +15,7 @@ import com.cheesecake.mafia.di.databaseModule
 import com.cheesecake.mafia.di.networkModule
 import com.cheesecake.mafia.di.repositoryModule
 import com.cheesecake.mafia.di.viewModelModule
+import com.cheesecake.mafia.ui.root.RootAdminScreen
 import com.cheesecake.mafia.ui.second.InteractiveScreen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -56,7 +57,7 @@ fun main() {
                         }
 
                         if (windowType == WindowType.First) {
-                            App(component = root)
+                            RootAdminScreen(component = root)
                         } else if (windowType == WindowType.Second) {
                             InteractiveScreen()
                         }
@@ -74,5 +75,5 @@ fun AppDesktopPreview() {
     val root = DefaultRootComponent(
         componentContext = DefaultComponentContext(lifecycle = lifecycle),
     )
-    App(root)
+    RootAdminScreen(component = root)
 }

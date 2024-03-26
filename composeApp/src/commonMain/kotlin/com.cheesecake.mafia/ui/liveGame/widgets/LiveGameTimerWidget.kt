@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.data.GameFinishResult
+import com.cheesecake.mafia.data.resultText
 import kotlinx.coroutines.delay
 
 @Composable
@@ -45,13 +46,7 @@ fun LiveGameTimer(
     val seconds by derivedStateOf {
         timer.mod(60).let { if (it < 9) "0${it}" else "$it" }
     }
-    val finishResultText = when (finishResult) {
-        GameFinishResult.BlackWin -> "Победа мафии"
-        GameFinishResult.RedWin -> "Победа мирного города"
-        GameFinishResult.WhiteWin -> "Победа маньяка"
-        else -> null
-    }
-
+    val finishResultText = finishResult?.resultText()
     Card(modifier) {
         Column(
             modifier = Modifier.padding(8.dp),

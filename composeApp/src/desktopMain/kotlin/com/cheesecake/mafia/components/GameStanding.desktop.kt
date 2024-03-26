@@ -1,6 +1,5 @@
 package com.cheesecake.mafia.components
 
-import App
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable
 import com.arkivanov.decompose.DefaultComponentContext
@@ -14,5 +13,5 @@ fun GameStandingScreen() {
     val root = DefaultRootComponent(
         componentContext = DefaultComponentContext(lifecycle = lifecycle),
     )
-    App(root)
+    //App(root)
 }

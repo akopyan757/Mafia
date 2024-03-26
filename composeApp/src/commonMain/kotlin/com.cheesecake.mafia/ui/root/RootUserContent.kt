@@ -12,26 +12,24 @@ import com.arkivanov.decompose.extensions.compose.jetbrains.stack.Children
 import com.cheesecake.mafia.components.root.RootComponent
 import com.cheesecake.mafia.ui.finishedGame.FinishedGameScreen
 import com.cheesecake.mafia.ui.liveGame.LiveGameScreen
-import com.cheesecake.mafia.ui.main.MainScreen
+import com.cheesecake.mafia.ui.main.MainAdminScreen
+import com.cheesecake.mafia.ui.main.MainUserScreen
 import com.cheesecake.mafia.ui.newGame.NewGameScreen
 
 @Composable
-fun RootScreen(
+fun RootUserScreen(
     component: RootComponent,
     modifier: Modifier = Modifier,
 ) {
     MaterialTheme {
         Box(modifier = modifier.fillMaxSize().windowInsetsPadding(WindowInsets.systemBars)) {
-            print("\nRootScreen: Surface: ${component.stack.value}")
             Children(
                 stack = component.stack,
                 modifier = Modifier.fillMaxSize(),
             ) {
                 when (val instance = it.instance) {
-                    is RootComponent.Child.Main -> MainScreen(component = instance.component)
-                    is RootComponent.Child.NewGame -> NewGameScreen(component = instance.component)
-                    is RootComponent.Child.LiveGame -> LiveGameScreen(component = instance.component)
-                    is RootComponent.Child.FinishedGame -> FinishedGameScreen(component = instance.component)
+                    is RootComponent.Child.Main -> MainUserScreen(component = instance.component)
+                    else -> {}
                 }
             }
         }

@@ -17,13 +17,13 @@ val lightColors = lightColors(
     onSecondary = White,
 )
 
-expect val fontFamily: FontFamily
+@Composable
+expect fun fontFamily(): FontFamily
 
-fun getFontFamily() = fontFamily
-
-val typography = Typography(
+@Composable
+fun typography() = Typography(
     h3 = TextStyle(
-        fontFamily = getFontFamily(),
+        fontFamily = fontFamily(),
         fontWeight = FontWeight.Medium,
         fontStyle = FontStyle.Normal,
         fontSize = 24.sp,
@@ -31,7 +31,7 @@ val typography = Typography(
         color = Black,
     ),
     h5 = TextStyle(
-        fontFamily = getFontFamily(),
+        fontFamily = fontFamily(),
         fontWeight = FontWeight.Medium,
         fontStyle = FontStyle.Normal,
         fontSize = 16.sp,
@@ -39,7 +39,7 @@ val typography = Typography(
         color = Black,
     ),
     h6 = TextStyle(
-        fontFamily = getFontFamily(),
+        fontFamily = fontFamily(),
         fontWeight = FontWeight.Medium,
         fontStyle = FontStyle.Normal,
         fontSize = 14.sp,
@@ -47,7 +47,7 @@ val typography = Typography(
         color = Black,
     ),
     body1 = TextStyle(
-        fontFamily = getFontFamily(),
+        fontFamily = fontFamily(),
         fontWeight = FontWeight.Light,
         fontStyle = FontStyle.Normal,
         fontSize = 16.sp,
@@ -55,7 +55,7 @@ val typography = Typography(
         color = BlackDark,
     ),
     subtitle1 = TextStyle(
-        fontFamily = getFontFamily(),
+        fontFamily = fontFamily(),
         fontWeight = FontWeight.Light,
         fontStyle = FontStyle.Normal,
         fontSize = 14.sp,
@@ -63,7 +63,7 @@ val typography = Typography(
         color = GrayLight,
     ),
     caption = TextStyle(
-        fontFamily = getFontFamily(),
+        fontFamily = fontFamily(),
         fontWeight = FontWeight.Medium,
         fontStyle = FontStyle.Normal,
         fontSize = 10.sp,
@@ -76,7 +76,7 @@ val typography = Typography(
 fun ProjectTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colors = lightColors,
-        typography = typography,
+        typography = typography(),
         content = content,
     )
 }
