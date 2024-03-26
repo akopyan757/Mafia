@@ -1,8 +1,17 @@
 package com.cheesecake.mafia.data
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
+import kotlinx.serialization.descriptors.buildSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
-@Serializable
+@Serializable(GamePlayerRoleSerializer::class)
 sealed class GamePlayerRole {
     abstract val iconRes: String
     abstract val name: String
@@ -45,6 +54,10 @@ sealed class GamePlayerRole {
         @Serializable
         data object Maniac : White("Маньяк","ic_role_maniac.xml")
     }
+
+    companion object {
+        fun ofName(name: String) = roleValues().find { it.name == name } ?: None
+    }
 }
 
 fun roleValues() = listOf(
@@ -56,3 +69,18 @@ fun roleValues() = listOf(
     GamePlayerRole.Black.Don,
     GamePlayerRole.White.Maniac,
 )
+
+@Suppress("EXTERNAL_SERIALIZER_USELESS")
+@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
+@Serializer(forClass = GamePlayerRole::class)
+object GamePlayerRoleSerializer : KSerializer<GamePlayerRole> {
+    override val descriptor: SerialDescriptor = buildSerialDescriptor("role", kind = SerialKind.CONTEXTUAL)
+    override fun serialize(encoder: Encoder, value: GamePlayerRole) {
+        encoder.encodeString(value.name)
+    }
+    override fun deserialize(decoder: Decoder): GamePlayerRole {
+        return GamePlayerRole.ofName(decoder.decodeString())
+    }
+}
+
+

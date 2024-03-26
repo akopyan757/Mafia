@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+import kotlin.random.nextUInt
 
 class NewGameViewModel(
     private val repository: PlayerRepository,
@@ -29,15 +30,17 @@ class NewGameViewModel(
 
     init {
         interactiveGameRepository.saveState(InteractiveScreenState.Main)
-        val existPlayers = repository.selectAll().map { PlayerState(it.id, it.name) }
-        _state.value = NewGameState(
-            title = "Игра",
-            items = List(DEFAULT_GAME_COUNT) { index ->
-                NewGamePlayerItem(index + 1, SelectPlayerState.None, GamePlayerRole.None)
-            },
-            totalPlayers = existPlayers,
-            availablePlayers = existPlayers,
-        )
+        viewModelScope.launch {
+            val existPlayers = repository.selectAll().map { PlayerState(it.id, it.name) }
+            _state.value = NewGameState(
+                title = "Игра",
+                items = List(DEFAULT_GAME_COUNT) { index ->
+                    NewGamePlayerItem(index + 1, SelectPlayerState.None, GamePlayerRole.None)
+                },
+                totalPlayers = existPlayers,
+                availablePlayers = existPlayers,
+            )
+        }
     }
 
     fun changeTitleValue(title: String) {
@@ -51,10 +54,13 @@ class NewGameViewModel(
     fun saveNewPlayers() {
         val newPlayers = _state.value.items
             .mapNotNull { (it.player as? SelectPlayerState.New)?.value }
-            .map { value -> PlayerData(Random(value.hashCode()).nextInt().toLong(), name = value) }
+            .map { value -> PlayerData(name = value) }
+        /*
         viewModelScope.launch {
             repository.insert(newPlayers)
         }
+
+         */
     }
 
     fun onPlayerCountsChanged(count: Int) {

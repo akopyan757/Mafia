@@ -99,7 +99,7 @@ fun LiveGameScreen(
                     items = state.players,
                     showRoles = showRoles,
                     showOnlyAlive = showOnlyAlive,
-                    round = state.round,
+                    round = state.round.toInt(),
                     stage = state.stage,
                     voteCandidates = state.voteCandidates,
                     onPutOnVote = { number -> viewModel.addVotedCandidate(number) },

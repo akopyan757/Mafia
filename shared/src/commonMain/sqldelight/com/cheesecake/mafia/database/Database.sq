@@ -44,11 +44,7 @@ selectGameById:
 SELECT * FROM `game` WHERE id == ?;
 
 insertGame:
-INSERT INTO `game`(id, title, date, lastRound, lastDayType, finishResult, totalTime) VALUES ?;
-
-insertGame2:
-INSERT INTO `game`(id, title, date, lastRound, lastDayType, finishResult, totalTime)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO `game`(id, title, date, lastRound, lastDayType, finishResult, totalTime) VALUES ?;
 
 deleteGameById:
 DELETE FROM `game` WHERE id == ?;

@@ -81,6 +81,7 @@ fun InteractiveFinishedScreen(gameData: GameData) {
                     GameFinishResult.BlackWin -> "Победа мафии"
                     GameFinishResult.RedWin -> "Победа мирного города"
                     GameFinishResult.WhiteWin -> "Победа маньяка"
+                    else -> ""
                 }
                 Text(
                     text = text,
@@ -129,7 +130,7 @@ private fun PlayerItem(
                     Spacer(Modifier.weight(0.3F))
                     PlayerNumberWidget(
                         modifier = Modifier.size(70.dp),
-                        number = playerData.number,
+                        number = playerData.number.toInt(),
                     )
                     Text(
                         modifier = Modifier.padding(8.dp),

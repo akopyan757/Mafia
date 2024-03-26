@@ -12,6 +12,7 @@ import com.arkivanov.decompose.extensions.compose.jetbrains.lifecycle.LifecycleC
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.cheesecake.mafia.components.root.DefaultRootComponent
 import com.cheesecake.mafia.di.databaseModule
+import com.cheesecake.mafia.di.networkModule
 import com.cheesecake.mafia.di.repositoryModule
 import com.cheesecake.mafia.di.viewModelModule
 import com.cheesecake.mafia.ui.second.InteractiveScreen
@@ -35,7 +36,7 @@ fun main() {
         val windowFocusRequestSharedFlow = remember { MutableSharedFlow<WindowType>() }
 
         KoinApplication(application = {
-            modules(databaseModule(), repositoryModule(), viewModelModule())
+            modules(networkModule(), databaseModule(), repositoryModule(), viewModelModule())
         }) {
             WindowType.entries.forEach { windowType ->
                 val windowState = rememberWindowState()

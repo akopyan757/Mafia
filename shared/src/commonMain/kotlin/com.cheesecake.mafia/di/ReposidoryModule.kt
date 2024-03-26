@@ -11,8 +11,8 @@ import com.cheesecake.mafia.repository.PlayerRepositoryImpl
 import org.koin.dsl.module
 
 fun repositoryModule() = module {
-    single<PlayerRepository> { PlayerRepositoryImpl(get()) }
-    single<ReadGameRepository> { ReadGameRepositoryImpl(get()) }
-    single<ManageGameRepository> { ManageGameRepositoryImpl(get()) }
+    single<PlayerRepository> { PlayerRepositoryImpl(get(), get()) }
+    single<ReadGameRepository> { ReadGameRepositoryImpl(get(), get()) }
+    single<ManageGameRepository> { ManageGameRepositoryImpl(get(), get()) }
     single<InteractiveGameRepository> { InteractiveGameRepositoryImpl() }
 }

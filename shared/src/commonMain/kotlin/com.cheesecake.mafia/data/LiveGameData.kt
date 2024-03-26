@@ -3,7 +3,7 @@ package com.cheesecake.mafia.data
 data class LiveGameData(
     val id: Int = 1,
     val players: List<LivePlayerData> = emptyList(),
-    val round: Int = 0,
+    val round: Byte = 0,
     var firstSpeechPlayer: Int = 0,
     val stage: LiveStage = LiveStage.Start,
     val queueStage: List<LiveStage> = emptyList(),
@@ -11,7 +11,7 @@ data class LiveGameData(
     val nightActions: Map<GameActionType.NightActon, Int> = emptyMap(),
 ) {
     val isVoteMissing: Boolean
-        get() = voteCandidates.isEmpty() || (voteCandidates.size == 1 && round == 0)
+        get() = voteCandidates.isEmpty() || (voteCandidates.size == 1 && round.toInt() == 0)
 
     val winner: GameFinishResult?
         get() {

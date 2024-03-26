@@ -138,7 +138,7 @@ fun LiveGameItem(
         } else {
             Box(modifier = Modifier.width(foulsColumnSize))
         }
-        val actionsHistory = generateHistory(stage.type, round)
+        val actionsHistory = generateHistory(stage.type, round.toByte())
         val deadAction = player.actions.firstOrNull { it.actionType is GameActionType.Dead }
         val notAliveValue = deadAction?.let { it.dayIndex * 2 + it.actionType.dayType().order } ?: Int.MAX_VALUE
         if (actionsHistory.isNotEmpty()) {

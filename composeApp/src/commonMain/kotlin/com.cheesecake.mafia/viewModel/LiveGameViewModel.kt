@@ -14,6 +14,7 @@ import com.cheesecake.mafia.data.LivePlayerData
 import com.cheesecake.mafia.data.LiveStage
 import com.cheesecake.mafia.data.InteractiveScreenState
 import com.cheesecake.mafia.repository.InteractiveGameRepository
+import com.cheesecake.mafia.state.SelectPlayerState
 import com.cheesecake.mafia.state.StartGameData
 import com.cheesecake.mafia.state.buildProtocol
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
@@ -51,7 +52,13 @@ class LiveGameViewModel(
 
     init {
         val startPlayers = startGameData.items.map { item ->
-            LivePlayerData(item.player.id, item.number, item.player.name, item.role)
+            LivePlayerData(
+                item.player.id,
+                item.number,
+                item.player.name,
+                item.role,
+                item.player is SelectPlayerState.New
+            )
         }
         val speechPlayers = startPlayers.filter { it.isAlive && !it.isClient }
         val startQueue = _state.value.queueStage
@@ -148,7 +155,7 @@ class LiveGameViewModel(
                         state.copy(
                             queueStage = queue,
                             stage = LiveStage.Night(),
-                            round = state.round + 1,
+                            round = state.round.inc(),
                             players = players
                         )
                     } else {
@@ -156,7 +163,7 @@ class LiveGameViewModel(
                     }
                 } else if (currentStage is LiveStage.Night) {
                     state.copy(
-                        round = state.round + 1,
+                        round = state.round.inc(),
                         stage = currentStage,
                         queueStage = queue,
                         players = state.players.map { player -> player.copy(isClient = false) },
@@ -207,7 +214,7 @@ class LiveGameViewModel(
                         isVoted = true,
                         actions = player.actions + listOf(
                             GameAction(state.round, GameActionType.DayAction.Voted),
-                            GameAction(state.round + 1, GameActionType.Dead(DayType.Day))
+                            GameAction(state.round.inc(), GameActionType.Dead(DayType.Day))
                         )
                     )
                 }

@@ -37,19 +37,19 @@ fun DayType.toText(): String {
     }
 }
 
-fun generateHistory(stage: DayType, count: Int): List<Pair<DayType, Int>> {
-    return (0..count).map { index ->
+fun generateHistory(stage: DayType, count: Byte): List<Pair<DayType, Byte>> {
+    return (0 .. count).map { index ->
         if (index == 0) {
-            if (stage == DayType.Night && count == 0) {
+            if (stage == DayType.Night && count == 0.toByte()) {
                 listOf()
             } else {
-                listOf(DayType.Day to index)
+                listOf(DayType.Day to index.toByte())
             }
         } else {
-            if (stage == DayType.Night && index == count) {
-                listOf(DayType.Night to index)
+            if (stage == DayType.Night && index.toByte() == count) {
+                listOf(DayType.Night to index.toByte())
             } else {
-                listOf(DayType.Night to index, DayType.Day to index)
+                listOf(DayType.Night to index.toByte(), DayType.Day to index.toByte())
             }
         }
     }.flatten()

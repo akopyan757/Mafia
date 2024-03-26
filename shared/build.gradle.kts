@@ -48,15 +48,19 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.sqldelight.coroutines)
             implementation(libs.sqldelight.primitive.adapters)
+            implementation(libs.ktor.client.core)
         }
         androidMain.dependencies {
             implementation(libs.sqldelight.android)
+            implementation(libs.ktor.client.android)
         }
         jvmMain.dependencies {
             implementation(libs.sqldelight.desktop)
+            implementation(libs.ktor.client.apache5)
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.ios)
+            //implementation(libs.ktor.client.winhttp)
         }
     }
 }

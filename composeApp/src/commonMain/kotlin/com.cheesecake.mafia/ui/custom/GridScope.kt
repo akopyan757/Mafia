@@ -105,7 +105,7 @@ fun Grid(
             var y = 0
             var childIndex = 0
             gridInfo.forEach { info ->
-                repeat(info.numChildren) { index ->
+                repeat(info.numChildren) {
                     val placeable = placeables[childIndex++]
                     placeable.placeRelative(
                         x = x,

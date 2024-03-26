@@ -13,9 +13,19 @@ application {
 
 dependencies {
     implementation(projects.shared)
-    implementation(libs.logback)
     implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.cio)
+    implementation(libs.ktor.server.content)
+    implementation(libs.ktor.server.kotlinx)
     implementation(libs.ktor.server.netty)
-    testImplementation(libs.ktor.server.tests)
+
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.jdbc)
+
+    implementation(libs.postgress)
+    implementation(libs.hikari)
+
+    implementation(libs.logback)
     testImplementation(libs.kotlin.test.junit)
 }

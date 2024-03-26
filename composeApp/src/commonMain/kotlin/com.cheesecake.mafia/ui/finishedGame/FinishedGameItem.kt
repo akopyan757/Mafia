@@ -82,7 +82,7 @@ fun FinishedGameItem(
 
         val notAliveAction = player.actions.firstOrNull { it.actionType is GameActionType.Dead }
         val notAliveValue = notAliveAction?.let { it.dayIndex * 2 + it.actionType.dayType().order } ?: Int.MAX_VALUE
-        generateHistory(lastDayType, lastRound).forEach { (dayType, dayIndex) ->
+        generateHistory(lastDayType, lastRound.toByte()).forEach { (dayType, dayIndex) ->
             val aliveValue = dayIndex * 2 + dayType.order
             val isAlive = aliveValue <= notAliveValue
             val gameActions = player.actions

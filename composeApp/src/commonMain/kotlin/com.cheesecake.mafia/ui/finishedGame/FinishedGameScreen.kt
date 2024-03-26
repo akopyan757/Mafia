@@ -57,6 +57,7 @@ fun FinishedGameScreen(
             GameFinishResult.BlackWin -> "Победа мафии"
             GameFinishResult.RedWin -> "Победа мирного города"
             GameFinishResult.WhiteWin -> "Победа маньяка"
+            else -> ""
         }
         Column(
             modifier = Modifier.fillMaxSize().padding(16.dp),
@@ -80,7 +81,7 @@ fun FinishedGameScreen(
                 standingState = GameStandingState(
                     id = 0,
                     status = GameStatus.Finished,
-                    round = protocol.lastRound,
+                    round = protocol.lastRound.toInt(),
                     dayType = protocol.lastDayType,
                     isShowRoles = true
                 ),
@@ -90,7 +91,7 @@ fun FinishedGameScreen(
                     FinishedGameItem(
                         modifier = Modifier,
                         player = player,
-                        lastRound = protocol.lastRound,
+                        lastRound = protocol.lastRound.toInt(),
                         lastDayType = protocol.lastDayType,
                     )
                 }

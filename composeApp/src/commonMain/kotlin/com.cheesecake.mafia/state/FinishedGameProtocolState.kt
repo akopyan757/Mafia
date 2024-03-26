@@ -38,7 +38,7 @@ fun LivePlayerData.toPlayerGameData(
         else -> false
     }
     return GamePlayerData(
-        playerId, gameId = gameId, number, name, role, isWinner, isAlive, isDeleted, actions
+        playerId, gameId, number.toByte(), name, role, isWinner, isAlive, isDeleted, isNewPlayer, actions
     )
 }
 

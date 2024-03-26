@@ -132,8 +132,8 @@ fun HeaderItem(
                 color = White,
             )
         }
-        val actionsHistory = generateHistory(dayType, round)
-        actionsHistory.forEachIndexed { index, (stageType, _) ->
+        val actionsHistory = generateHistory(dayType, round.toByte())
+        actionsHistory.forEachIndexed { index, (stageType, dayIndex) ->
             VerticalDivider(
                 color = White,
                 modifier = Modifier.align(Alignment.CenterVertically)
@@ -148,7 +148,7 @@ fun HeaderItem(
                 Modifier.width(activeStageColumnMinWidth)
             }
             Text(
-                text = stageType.toText() + " " + index,
+                text = stageType.toText() + " " + dayIndex,
                 modifier = modifierColumn,
                 style = MaterialTheme.typography.body1,
                 textAlign = TextAlign.Center,
