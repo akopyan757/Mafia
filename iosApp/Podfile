@@ -1,0 +1,4 @@
+target 'iosApp' do
+  platform :ios, '17.2'
+  pod 'Mafia', :path => '../Mafia'
+end

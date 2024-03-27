@@ -4,10 +4,12 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsCompose)
+    kotlin("native.cocoapods") version "1.9.23"
     kotlin("plugin.serialization") version "1.9.23"
 }
 
 kotlin {
+
     androidTarget {
         compilations.all {
             kotlinOptions {
@@ -29,12 +31,25 @@ kotlin {
             isStatic = true
         }
     }
+    applyDefaultHierarchyTemplate()
+
+    cocoapods {
+        summary = "Some description for the Shared Module"
+        homepage = "Link to the Shared Module homepage"
+        version = "1.0"
+        ios.deploymentTarget = "14.1"
+        //podfile = project.file("../iosApp/Podfile")
+        framework {
+            baseName = "MafiaApp"
+            isStatic = true
+        }
+        //pod("youtube-ios-player-helper")
+    }
 
     sourceSets {
         val desktopMain by getting
 
-        iosMain.dependencies {
-        }
+        iosMain.dependencies {}
         androidMain.dependencies {
             implementation(libs.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
@@ -81,7 +96,7 @@ android {
         }
     }
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
-    sourceSets["main"].res.srcDirs("src/androidMain/res", "src/commonMain/resources")
+    sourceSets["main"].res.srcDirs("src/androidMain/res", "src/commonMain/composeResources")
 
     defaultConfig {
         applicationId = "com.cheesecake.mafia.android"

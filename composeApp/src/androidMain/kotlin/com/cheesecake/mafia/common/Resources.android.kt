@@ -3,7 +3,6 @@ package com.cheesecake.mafia.common
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Resources
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
@@ -11,7 +10,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.font.createFontFamilyResolver
 
 @Composable
 actual fun imageResources(imageRes: String): Painter {
