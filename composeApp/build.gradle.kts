@@ -143,3 +143,4 @@ dependencies {
     implementation(libs.protolite.well.known.types)
     implementation(libs.androidx.core.i18n)
 }
+task("testClasses")

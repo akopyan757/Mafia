@@ -27,12 +27,11 @@ kotlin {
             }
         }
     }
-    
+
     iosX64()
     iosArm64()
     iosSimulatorArm64()
 
-    jvmToolchain(17)
     jvm()
 
     targets.configureEach {
@@ -76,3 +75,5 @@ android {
 dependencies {
     implementation(libs.androidx.media3.decoder)
 }
+
+task("testClasses")
