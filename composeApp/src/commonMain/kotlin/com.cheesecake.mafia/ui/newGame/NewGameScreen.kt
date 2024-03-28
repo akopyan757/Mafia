@@ -107,7 +107,6 @@ fun NewGameStanding(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
                         onClick = {
-                            viewModel.saveNewPlayers()
                             onStartGameClicked(state.toStartData())
                         },
                         enabled = state.isItemsFilled,

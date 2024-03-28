@@ -1,7 +1,5 @@
 import io.ktor.plugin.features.DockerPortMapping
 import io.ktor.plugin.features.DockerPortMappingProtocol
-import org.jetbrains.kotlin.com.intellij.openapi.vfs.StandardFileSystems.jar
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -57,8 +55,4 @@ dependencies {
 
     implementation(libs.logback)
     testImplementation(libs.kotlin.test.junit)
-}
-
-tasks.create("stage") {
-    dependsOn("installDist")
 }

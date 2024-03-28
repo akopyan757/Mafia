@@ -1,0 +1,9 @@
+.gradle/
+build/
+composeApp
+shared/src/androidMain
+shared/src/iosMain
+shared/src/jvmMain
+shared/src/nativeMain
+shared/src/wasmJsMain
+iosApp

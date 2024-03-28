@@ -51,18 +51,6 @@ class NewGameViewModel(
         _state.value = _state.value.copy(date = value)
     }
 
-    fun saveNewPlayers() {
-        val newPlayers = _state.value.items
-            .mapNotNull { (it.player as? SelectPlayerState.New)?.value }
-            .map { value -> PlayerData(name = value) }
-        /*
-        viewModelScope.launch {
-            repository.insert(newPlayers)
-        }
-
-         */
-    }
-
     fun onPlayerCountsChanged(count: Int) {
         changeState { state ->
             if (count < state.items.size) {

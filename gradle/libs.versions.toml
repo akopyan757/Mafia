@@ -21,6 +21,7 @@ kotlinxCoroutinesSwing = "1.8.0"
 kotlinxSerializationJson = "1.6.3"
 logback = "1.4.14"
 lifecycleViewmodelCompose = "2.7.0"
+material3 = "1.6.1"
 primitiveAdapters = "2.0.1"
 sqldelight = "2.0.1"
 protoliteWellKnownTypes = "18.0.0"
@@ -54,6 +55,7 @@ kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 sqldelight-android = { module = "app.cash.sqldelight:android-driver", version.ref = "sqldelight" }
 sqldelight-ios = { module = "app.cash.sqldelight:native-driver", version.ref = "sqldelight" }
 sqldelight-desktop = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
