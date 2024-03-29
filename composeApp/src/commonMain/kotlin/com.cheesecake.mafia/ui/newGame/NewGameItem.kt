@@ -67,7 +67,7 @@ fun NewGameItem(
     onPlayerChoose: (PlayerState) -> Unit = {},
     onNewPlayerClicked: (name: String) -> Unit = {},
     minPlayerNameLength: Int = 3,
-    role: GamePlayerRole = GamePlayerRole.Red.Сivilian,
+    role: GamePlayerRole = GamePlayerRole.Red.Civilian,
     onRoleChanged: (GamePlayerRole) -> Unit = {},
     availableRoles: List<GamePlayerRole> = emptyList(),
     number: Int = 1,
@@ -179,7 +179,7 @@ fun NewGamePlayer(
                             Key.B, RussianKey.B.key -> onRoleChosen(GamePlayerRole.White.Maniac)
                             Key.W, RussianKey.W.key -> onRoleChosen(GamePlayerRole.Red.Whore)
                             Key.S, RussianKey.S.key -> onRoleChosen(GamePlayerRole.Red.Sheriff)
-                            Key.C, RussianKey.C.key -> onRoleChosen(GamePlayerRole.Red.Сivilian)
+                            Key.C, RussianKey.C.key -> onRoleChosen(GamePlayerRole.Red.Civilian)
                             Key.D, RussianKey.D.key -> onRoleChosen(GamePlayerRole.Red.Doctor)
                         }
                         true
@@ -237,7 +237,7 @@ fun NewGamePlayer(
 @Composable
 fun NewGameRole(
     modifier: Modifier = Modifier,
-    role: GamePlayerRole = GamePlayerRole.Red.Сivilian,
+    role: GamePlayerRole = GamePlayerRole.Red.Civilian,
     onRoleChanged: (GamePlayerRole) -> Unit = {},
     availableRoles: List<GamePlayerRole> = emptyList(),
 ) {

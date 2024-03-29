@@ -23,7 +23,7 @@ sealed class GamePlayerRole {
 
     sealed class Red(override val name: String, override val iconRes: String): GamePlayerRole() {
 
-        data object Сivilian : Red("Сivilian", "ic_user.xml")
+        data object Civilian : Red("Сivilian", "ic_user.xml")
 
         data object Sheriff : Red("Sheriff", "ic_role_sheriff.xml")
 
@@ -50,7 +50,7 @@ sealed class GamePlayerRole {
 }
 
 fun roleValues() = listOf(
-    GamePlayerRole.Red.Сivilian,
+    GamePlayerRole.Red.Civilian,
     GamePlayerRole.Red.Sheriff,
     GamePlayerRole.Red.Doctor,
     GamePlayerRole.Red.Whore,

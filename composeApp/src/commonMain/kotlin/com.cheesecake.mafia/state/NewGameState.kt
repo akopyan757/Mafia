@@ -17,7 +17,7 @@ data class NewGameState(
     private val filledPlayers: List<NewGamePlayerItem>
         get() = items.map { item ->
             if (item.role is GamePlayerRole.None)
-                item.copy(role = GamePlayerRole.Red.Сivilian)
+                item.copy(role = GamePlayerRole.Red.Civilian)
             else
                 item
         }
