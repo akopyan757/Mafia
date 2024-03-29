@@ -23,25 +23,25 @@ sealed class GamePlayerRole {
 
     sealed class Red(override val name: String, override val iconRes: String): GamePlayerRole() {
 
-        data object Сivilian : Red("Мирный", "ic_user.xml")
+        data object Сivilian : Red("Сivilian", "ic_user.xml")
 
-        data object Sheriff : Red("Шериф", "ic_role_sheriff.xml")
+        data object Sheriff : Red("Sheriff", "ic_role_sheriff.xml")
 
-        data object Doctor : Red("Доктор", "ic_role_doctor.xml")
+        data object Doctor : Red("Doctor", "ic_role_doctor.xml")
 
-        data object Whore : Red("Путана", "ic_role_whore.xml")
+        data object Whore : Red("Whore", "ic_role_whore.xml")
     }
 
     sealed class Black(override val name: String, override val iconRes: String) : GamePlayerRole() {
 
-        data object Mafia: Black("Мафия", "ic_role_mafia.xml")
+        data object Mafia: Black("Mafia", "ic_role_mafia.xml")
 
-        data object Don : Black("Дон", "ic_role_don.xml")
+        data object Don : Black("Don", "ic_role_don.xml")
     }
 
     sealed class White(override val name: String, override val iconRes: String) : GamePlayerRole() {
 
-        data object Maniac : White("Маньяк","ic_role_maniac.xml")
+        data object Maniac : White("Maniac","ic_role_maniac.xml")
     }
 
     companion object {
