@@ -4,7 +4,7 @@ import androidx.compose.ui.unit.dp
 
 val positionColumnWidth = 80.dp
 const val positionColumnWeight = 0.1f
-val nameColumnWidth = 150.dp
+val nameColumnWidth = 200.dp
 const val nameColumnWeight = 0.25f
 val roleColumnWidth = 180.dp
 const val roleColumnWeight = 0.25f

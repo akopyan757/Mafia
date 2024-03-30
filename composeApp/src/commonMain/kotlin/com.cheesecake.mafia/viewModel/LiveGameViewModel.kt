@@ -2,18 +2,18 @@ package com.cheesecake.mafia.viewModel
 
 import com.cheesecake.mafia.common.changeItem
 import com.cheesecake.mafia.common.changeItems
+import com.cheesecake.mafia.data.ApiResult
 import com.cheesecake.mafia.data.DayType
 import com.cheesecake.mafia.data.GameAction
 import com.cheesecake.mafia.data.GameActionType
-import com.cheesecake.mafia.data.GameData
 import com.cheesecake.mafia.data.GameFinishResult
-import com.cheesecake.mafia.repository.ManageGameRepository
-import com.cheesecake.mafia.state.HistoryItem
+import com.cheesecake.mafia.data.InteractiveScreenState
 import com.cheesecake.mafia.data.LiveGameData
 import com.cheesecake.mafia.data.LivePlayerData
 import com.cheesecake.mafia.data.LiveStage
-import com.cheesecake.mafia.data.InteractiveScreenState
 import com.cheesecake.mafia.repository.InteractiveGameRepository
+import com.cheesecake.mafia.repository.ManageGameRepository
+import com.cheesecake.mafia.state.HistoryItem
 import com.cheesecake.mafia.state.SelectPlayerState
 import com.cheesecake.mafia.state.StartGameData
 import com.cheesecake.mafia.state.buildProtocol
@@ -101,7 +101,7 @@ class LiveGameViewModel(
         _gameActive.value = false
     }
 
-    fun saveGameRepository(time: Long, winner: GameFinishResult, onUploaded: (GameData) -> Unit) {
+    fun saveGameRepository(time: Long, winner: GameFinishResult, onUploaded: (gameId: Long) -> Unit) {
         viewModelScope.launch {
             val data = buildProtocol(
                 startGameData = startGameData,
@@ -110,8 +110,13 @@ class LiveGameViewModel(
                 totalTime = time,
             )
             interactiveGameRepository.clearState()
-            manageGameRepository.insert(data)
-            onUploaded(data)
+            when (val result = manageGameRepository.insert(data)) {
+                is ApiResult.Success -> {
+                    println("isSaved")
+                    onUploaded(result.data)
+                }
+                else -> {}
+            }
         }
     }
 
@@ -232,10 +237,10 @@ class LiveGameViewModel(
         changeState { state -> state.copy(nightActions = actions) }
     }
 
-    fun acceptNightActions() {
+    fun acceptNightActions(bestMoves: Map<Int, List<Int>>) {
         val nightActions = _state.value.nightActions
         changeStateAndNext(historyCached = true) { state ->
-            val newState = state.copyWithAcceptanceNightActions()
+            val newState = state.copyWithAcceptanceNightActions().mergeBestMove(bestMoves)
             var speechPlayers = newState.players.filter { it.isAlive && !it.isClient }.map { it.number }
             val groups = speechPlayers.groupBy { it <= _state.value.firstSpeechPlayer }
             speechPlayers = groups[false].orEmpty() + groups[true].orEmpty()
@@ -244,7 +249,10 @@ class LiveGameViewModel(
                 .push(speechPlayers.map { LiveStage.Day.Speech(it) })
                 .push(LiveStage.Day.Vote())
             val firstSpeech = speechPlayers.firstOrNull() ?: 0
-            newState.copy(queueStage = queue, firstSpeechPlayer = firstSpeech)
+            newState.copy(
+                queueStage = queue,
+                firstSpeechPlayer = firstSpeech,
+            )
         }
         addHistoryItems(
             nightActions.map { (action, playerNumber) ->
@@ -331,6 +339,16 @@ class LiveGameViewModel(
         return copy(
             players = players.toList(),
             nightActions = emptyMap(),
+        )
+    }
+
+    private fun LiveGameData.mergeBestMove(bestMoves: Map<Int, List<Int>>): LiveGameData {
+        return copy(
+            players = players.map { player ->
+                if (player.number in bestMoves) {
+                    player.copy(bestMove = bestMoves[player.number].orEmpty())
+                } else player
+            }
         )
     }
 

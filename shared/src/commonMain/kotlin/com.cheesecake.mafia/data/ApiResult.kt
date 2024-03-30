@@ -1,5 +1,4 @@
-package com.cheesecake.mafia.common
-
+package com.cheesecake.mafia.data
 
 sealed class ApiResult<out T> {
     data object Loading: ApiResult<Nothing>()

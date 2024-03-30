@@ -15,6 +15,7 @@ data class LivePlayerData(
     val isKilled: Boolean = false,
     val actions: List<GameAction> = emptyList(),
     val fouls: Int = 0,
+    val bestMove: List<Int> = emptyList(),
 ): Item<Int> {
     override val key: Int get() = number
 }

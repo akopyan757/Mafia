@@ -304,6 +304,13 @@ private fun PlayerItem(
                             )
                         }
                     }
+                    if (livePlayerData.bestMove.isNotEmpty()) {
+                        Text(
+                            text = "Лучших ход: ${livePlayerData.bestMove.joinToString(", ")}",
+                            style = MaterialTheme.typography.h5,
+                            color = tintColor,
+                        )
+                    }
                     Spacer(Modifier.weight(0.3F))
                 }
             } else {

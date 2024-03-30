@@ -97,19 +97,23 @@ fun LiveGameItem(
 
         VerticalDivider(color = WhiteLight, modifier = Modifier.align(Alignment.CenterVertically))
 
-        Box(modifier = Modifier.width(nameColumnWidth)) {
+        Row(modifier = Modifier.width(nameColumnWidth)) {
             Text(
-                modifier = Modifier.padding(start = 8.dp).align(Alignment.CenterStart),
+                modifier = Modifier.padding(start = 8.dp),
                 text = player.name,
                 style = MaterialTheme.typography.body1.let {
                     if (!player.isAlive) it.copy(textDecoration = TextDecoration.LineThrough) else it
                 },
-                color = if (player.isAlive) {
-                    BlackDark
-                } else {
-                    Color.Gray.copy(alpha = 0.5f)
-                }
+                color = if (player.isAlive) BlackDark else Color.Gray.copy(alpha = 0.5f)
             )
+            if (!player.isAlive && player.bestMove.isNotEmpty()) {
+                Text(
+                    modifier = Modifier.padding(start = 8.dp),
+                    text = "(" + player.bestMove.joinToString(", ") + ")",
+                    style = MaterialTheme.typography.body1,
+                    color = Color.Gray.copy(alpha = 0.5f),
+                )
+            }
         }
 
         if (showRoles) {

@@ -15,6 +15,9 @@ import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.jetbrains.exposed.sql.transactions.transaction
 
 object PlayerGames: Table("playergame") {
+
+    private const val SEPARATOR = ";"
+
     private val playerId = PlayerGames.long("playerId").uniqueIndex().references(Players.id)
     private val gameId = PlayerGames.long("gameId").uniqueIndex().references(Games.id)
     private val number = PlayerGames.byte("number")
@@ -23,6 +26,7 @@ object PlayerGames: Table("playergame") {
     private val isAlive = PlayerGames.bool("isAlive")
     private val isDeleted = PlayerGames.bool("isDeleted")
     private val actions = PlayerGames.blob("actions")
+    private val bestMove = PlayerGames.varchar("bestMove", 20)
 
     private val jsonArray = Json { useArrayPolymorphism = true }
     private val actionSerializer = ListSerializer(GameAction.serializer())
@@ -37,8 +41,12 @@ object PlayerGames: Table("playergame") {
                 it[isWinner] = data.isWinner
                 it[isAlive] = data.isAlive
                 it[isDeleted] = data.isDeleted
-                it[actions] = jsonArray.encodeToString(actionSerializer, data.actions)
-                    .let { jsonValue -> ExposedBlob(jsonValue.toByteArray()) }
+                it[actions] = ExposedBlob(
+                    jsonArray.encodeToString(actionSerializer, data.actions).toByteArray()
+                )
+                if (data.bestMove.isNotEmpty()) {
+                    it[bestMove] = data.bestMove.joinToString(separator = SEPARATOR)
+                }
             }
         }
     }
@@ -87,6 +95,11 @@ object PlayerGames: Table("playergame") {
             isDeleted = this[isDeleted],
             actions = this[actions].bytes.toString(Charsets.UTF_8).let { json ->
                 jsonArray.decodeFromString(actionSerializer, json)
+            },
+            bestMove = if (this[bestMove].isNotEmpty()) {
+                this[bestMove].split(SEPARATOR).map { it.toInt() }
+            } else {
+                emptyList()
             }
         )
     }

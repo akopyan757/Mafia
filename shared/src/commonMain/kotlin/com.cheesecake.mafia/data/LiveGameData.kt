@@ -10,6 +10,15 @@ data class LiveGameData(
     val voteCandidates: List<Int> = emptyList(),
     val nightActions: Map<GameActionType.NightActon, Int> = emptyMap(),
 ) {
+    val isFirstNight: Boolean
+        get() = round == 1.toByte() && stage is LiveStage.Night
+
+    val blackPlayersCount: Int
+        get() = players.filter { it.role is GamePlayerRole.Black }.size
+
+    val playersCount: Int
+        get() = players.size
+
     val isVoteMissing: Boolean
         get() = voteCandidates.isEmpty() || (voteCandidates.size == 1 && round.toInt() == 0)
 

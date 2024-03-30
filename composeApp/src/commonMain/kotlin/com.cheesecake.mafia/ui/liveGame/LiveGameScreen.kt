@@ -133,10 +133,14 @@ fun LiveGameScreen(
                     }
                     if (state.stage is LiveStage.Night) {
                         LiveNightWidget(
+                            modifier = Modifier.wrapContentSize(),
                             allActions = viewModel.getNightGameActions(),
                             killedPlayers = state.lastKilledPlayers,
                             clientChosen = state.lastClientPlayer,
-                            onFinish = { viewModel.acceptNightActions() },
+                            playersCount = state.playersCount,
+                            blackPlayersCount = state.blackPlayersCount,
+                            isFirstNight = state.isFirstNight,
+                            onFinish = { bestMoves -> viewModel.acceptNightActions(bestMoves) },
                         )
                     }
                     Column(
@@ -161,7 +165,6 @@ fun LiveGameScreen(
                             checked = showInteractive,
                             onCheckedChanged = { viewModel.showInteractive(it) },
                         )
-
                         LiveSwitcherWidget(
                             modifier = Modifier.fillMaxWidth(),
                             title = "Интерактив: Время",
@@ -198,8 +201,8 @@ fun LiveGameScreen(
                     onPauseGame = viewModel::pauseGame,
                     onStopGame = { time ->
                         finishResult?.let {
-                            viewModel.saveGameRepository(time, finishResult) { data ->
-                                onFinishGame(data.id)
+                            viewModel.saveGameRepository(time, finishResult) { gameId ->
+                                onFinishGame(gameId)
                             }
                         }
                     },

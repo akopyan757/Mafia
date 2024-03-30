@@ -1,12 +1,12 @@
 package com.cheesecake.mafia.feature.game
 
 import com.cheesecake.mafia.data.GameData
+import com.cheesecake.mafia.data.GameSaveResponse
 import com.cheesecake.mafia.database.Games
 import com.cheesecake.mafia.database.PlayerGames
 import com.cheesecake.mafia.database.Players
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import kotlinx.serialization.builtins.ListSerializer
@@ -24,7 +24,7 @@ class GameController(private val call: ApplicationCall) {
             PlayerGames.insert(game.players)
             Players.insert(game.newPlayers())
         }
-        call.respond(jsonArray.encodeToString(GameData.serializer(), game))
+        call.respond(GameSaveResponse(game.id))
     }
 
     suspend fun deleteGame() {
@@ -37,7 +37,7 @@ class GameController(private val call: ApplicationCall) {
             Games.deleteGame(gameId)
             PlayerGames.delete(gameId)
         }
-        call.respond(HttpStatusCode.OK)
+        call.respond(gameId)
     }
 
     suspend fun fetchAllGames() {

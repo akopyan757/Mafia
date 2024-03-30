@@ -1,16 +1,12 @@
 package com.cheesecake.mafia.repository
 
-import com.cheesecake.mafia.data.DayType
-import com.cheesecake.mafia.data.GameAction
+import com.cheesecake.mafia.data.ApiResult
 import com.cheesecake.mafia.data.GameData
-import com.cheesecake.mafia.data.GameFinishResult
-import com.cheesecake.mafia.data.GamePlayerData
-import com.cheesecake.mafia.data.GamePlayerRole
+import com.cheesecake.mafia.data.GameSaveResponse
 import com.cheesecake.mafia.database.Database
-import com.cheesecake.mafia.database.Game
 import com.cheesecake.mafia.database.IDriverFactory
-import com.cheesecake.mafia.database.PlayerGame
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -19,7 +15,6 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 
 internal class ManageGameRepositoryImpl(
@@ -34,27 +29,28 @@ internal class ManageGameRepositoryImpl(
 
     private val jsonArray = Json { useArrayPolymorphism = true }
 
-    override suspend fun insert(item: GameData) {
-        withContext(Dispatchers.IO) {
-            client.post("/game/save") {
+    override suspend fun insert(item: GameData) = withContext(Dispatchers.IO) {
+        try {
+            val response = client.post("/game/save") {
                 contentType(ContentType.Application.Json)
                 setBody(jsonArray.encodeToString(GameData.serializer(), item))
+            }.let {
+                jsonArray.decodeFromString(GameSaveResponse.serializer(), it.body<String>())
             }
-            /*
-            dbQuery.transaction {
-                dbQuery.insertGame(item.toDatabaseDto())
-                item.players.forEach { playerDate ->
-                    dbQuery.insertPlayerGame(playerGame = playerDate.toDatabaseDto())
-                }
-            }*/
+            ApiResult.Success(response.id)
+        } catch (e: Exception) {
+            println("insert")
+            e.printStackTrace()
+            ApiResult.Error(e)
         }
     }
 
-    override suspend fun deleteById(id: Long) = withContext(Dispatchers.IO) {
-        dbQuery.transaction {
-            //dbQuery.deleteGameById(id)
-            //dbQuery.deletePlayerFromGame(id)
+    override suspend fun deleteById(id: Long): ApiResult<Unit> = withContext(Dispatchers.IO) {
+        try {
             client.delete("game/delete/$id")
+            ApiResult.Success(Unit)
+        } catch (e: Exception) {
+            ApiResult.Error(e)
         }
     }
 }

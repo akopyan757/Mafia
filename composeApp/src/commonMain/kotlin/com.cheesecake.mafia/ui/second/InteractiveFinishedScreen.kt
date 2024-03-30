@@ -160,6 +160,13 @@ private fun PlayerItem(
                             )
                         }
                     }
+                    if (playerData.bestMove.isNotEmpty()) {
+                        Text(
+                            text = "Лучших ход: ${playerData.bestMove.joinToString(", ")}",
+                            style = MaterialTheme.typography.h5,
+                            color = White,
+                        )
+                    }
                     Spacer(Modifier.weight(0.3F))
                 }
             } else {

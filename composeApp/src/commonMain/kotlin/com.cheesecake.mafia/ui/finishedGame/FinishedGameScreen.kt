@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -14,6 +13,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -21,12 +21,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
-import com.cheesecake.mafia.common.ApiResult
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.imageResources
 import com.cheesecake.mafia.components.finishedGame.FinishedGameComponent
+import com.cheesecake.mafia.data.ApiResult
 import com.cheesecake.mafia.data.GameData
-import com.cheesecake.mafia.data.GameFinishResult
 import com.cheesecake.mafia.data.resultText
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
@@ -48,6 +47,14 @@ fun FinishedGameScreen(
     onBackPressed: () -> Unit = {}
 ) {
     val result by viewModel.gameDataResult.collectAsState()
+    val isDeleted by viewModel.isDeleted.collectAsState()
+
+    LaunchedEffect(isDeleted) {
+        if (isDeleted) {
+            onBackPressed()
+        }
+    }
+
     if (result is ApiResult.Loading) {
         Box(modifier = Modifier.fillMaxSize().padding(16.dp)) {
            Button(
