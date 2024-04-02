@@ -1,14 +1,23 @@
 package com.cheesecake.mafia.data
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.SerialKind
+import kotlinx.serialization.descriptors.buildSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 
-@Serializable
+@Serializable(with = GameActionTypeSerializer::class)
 sealed interface GameActionType {
 
     @Serializable
     data class Dead(val dayType: DayType): GameActionType {
         override fun dayType(): DayType = dayType
-        override fun value(): String  = "Dead"
+        override fun value(): String  = "Dead" + dayType.value
     }
 
     @Serializable
@@ -51,4 +60,30 @@ sealed interface GameActionType {
     fun iconRes(): String = ""
     fun value(): String = ""
     fun dayType(): DayType
+
+    companion object {
+        private fun values(): List<GameActionType> {
+            return listOf(Dead(DayType.Day), Dead(DayType.Night)) +
+                    DayAction.entries.toTypedArray() +
+                    NightActon.entries.toTypedArray()
+        }
+
+        fun ofValue(value: String): GameActionType? {
+            return values().find { it.value() == value }
+        }
+    }
+}
+
+@Suppress("EXTERNAL_SERIALIZER_USELESS")
+@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
+@Serializer(forClass = GameActionType::class)
+object GameActionTypeSerializer : KSerializer<GameActionType> {
+    override val descriptor: SerialDescriptor = buildSerialDescriptor("role", kind = SerialKind.CONTEXTUAL)
+    override fun deserialize(decoder: Decoder): GameActionType {
+        return GameActionType.ofValue(decoder.decodeString()) ?: GameActionType.Dead(DayType.Day)
+    }
+
+    override fun serialize(encoder: Encoder, value: GameActionType) {
+        encoder.encodeString(value.value())
+    }
 }

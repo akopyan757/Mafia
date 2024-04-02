@@ -26,9 +26,8 @@ fun main() {
 }
 
 fun Application.module() {
-    configureRouting()
     configureSerialization()
+    configureRouting()
     configureGameRouting()
     configurePlayerRouting()
-    configureRouting()
 }

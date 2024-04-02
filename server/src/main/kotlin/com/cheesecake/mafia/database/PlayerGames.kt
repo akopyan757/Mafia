@@ -41,9 +41,9 @@ object PlayerGames: Table("playergame") {
                 it[isWinner] = data.isWinner
                 it[isAlive] = data.isAlive
                 it[isDeleted] = data.isDeleted
-                it[actions] = ExposedBlob(
-                    jsonArray.encodeToString(actionSerializer, data.actions).toByteArray()
-                )
+                it[actions] = jsonArray.encodeToString(actionSerializer, data.actions)
+                    .toByteArray()
+                    .let { bytes -> ExposedBlob(bytes) }
                 if (data.bestMove.isNotEmpty()) {
                     it[bestMove] = data.bestMove.joinToString(separator = SEPARATOR)
                 }
@@ -94,11 +94,12 @@ object PlayerGames: Table("playergame") {
             isAlive = this[isAlive],
             isDeleted = this[isDeleted],
             actions = this[actions].bytes.toString(Charsets.UTF_8).let { json ->
+                println("actions = $json")
                 jsonArray.decodeFromString(actionSerializer, json)
             },
-            bestMove = if (this[bestMove].isNotEmpty()) {
+            bestMove = try {
                 this[bestMove].split(SEPARATOR).map { it.toInt() }
-            } else {
+            } catch (e: Exception) {
                 emptyList()
             }
         )

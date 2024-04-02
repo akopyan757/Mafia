@@ -63,7 +63,7 @@ fun DateSelectorTextField(
         OutlinedTextField(
             value = textValue,
             onValueChange = {},
-            label = { Text("Дата") },
+            label = { Text("Дата", color = BlackDark) },
             trailingIcon = {
                 Icon(
                     painter = imageResources("ic_calendar_month.xml"),

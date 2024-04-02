@@ -15,7 +15,7 @@ ktor {
         jreVersion.set(JavaVersion.VERSION_17)
         portMappings.set(
             listOf(
-                DockerPortMapping(outsideDocker = 80, insideDocker = 8080, DockerPortMappingProtocol.TCP)
+                DockerPortMapping(outsideDocker = 80, insideDocker = 8082, DockerPortMappingProtocol.TCP)
             )
         )
     }
@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.ktor.server.content)
     implementation(libs.ktor.server.kotlinx)
     implementation(libs.ktor.server.netty)
+    implementation(libs.logback)
 
     implementation(libs.exposed.core)
     implementation(libs.exposed.dao)

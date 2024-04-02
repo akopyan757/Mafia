@@ -7,7 +7,8 @@ import com.cheesecake.mafia.database.PlayerGames
 import com.cheesecake.mafia.database.Players
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.request.receive
+import io.ktor.server.application.log
+import io.ktor.server.request.receiveText
 import io.ktor.server.response.respond
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
@@ -17,14 +18,24 @@ class GameController(private val call: ApplicationCall) {
 
     private val jsonArray = Json { useArrayPolymorphism = true }
     suspend fun saveGame() {
-        val json = call.receive<String>()
-        val game = jsonArray.decodeFromString(GameData.serializer(), json).generateIds()
-        transaction {
-            Games.insert(game)
-            PlayerGames.insert(game.players)
-            Players.insert(game.newPlayers())
+        call.application.log.info("saveGame: request: start")
+        val requestJson = call.receiveText()
+        call.application.log.info("saveGame: request: body=$requestJson")
+        try {
+            val game = jsonArray.decodeFromString(GameData.serializer(), requestJson).generateIds()
+            transaction {
+                Games.insert(game)
+                PlayerGames.insert(game.players)
+                Players.insert(game.newPlayers())
+            }
+            val response = GameSaveResponse(game.id)
+            val responseJson = jsonArray.encodeToString(GameSaveResponse.serializer(), response)
+            call.application.log.info("saveGame: response: body=$responseJson")
+            call.respond(responseJson)
+        } catch (e: Exception) {
+            call.application.log.error("saveGame: error:", e)
+            call.respond(HttpStatusCode.InternalServerError)
         }
-        call.respond(GameSaveResponse(game.id))
     }
 
     suspend fun deleteGame() {

@@ -150,7 +150,6 @@ fun LiveGameItem(
                 val (dayType, dayRound) = actionsHistory[index]
                 val aliveValue = dayRound * 2 + dayType.order
                 val isAlive = aliveValue <= notAliveValue
-                println("\nPlayer: ${player.number}, type: $dayType, round: $dayRound, isAlive: $isAlive")
                 val gameActions = player.actions
                     .filter { it.actionType.dayType() == dayType && it.dayIndex == dayRound }
                     .map { gameAction -> gameAction.actionType }

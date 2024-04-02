@@ -57,6 +57,7 @@ kotlin {
         jvmMain.dependencies {
             implementation(libs.sqldelight.desktop)
             implementation(libs.ktor.client.apache5)
+            implementation(libs.ktor.client.logging.native)
         }
         iosMain.dependencies {
             implementation(libs.sqldelight.ios)

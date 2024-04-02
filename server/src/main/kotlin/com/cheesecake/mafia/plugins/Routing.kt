@@ -10,6 +10,7 @@ fun Application.configureRouting() {
     routing {
         get("/") {
             call.respondText("Ktor: Hello world!")
+            call.application.environment.log.info("Ktor: Hello world!")
         }
     }
 }

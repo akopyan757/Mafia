@@ -80,7 +80,7 @@ fun NewGameStanding(
                     }
                     OutlinedTextField(
                         value = state.title,
-                        label = { Text("Название") },
+                        label = { Text("Название", color = BlackDark) },
                         onValueChange = { viewModel.changeTitleValue(it) },
                         singleLine = true,
                         colors = TextFieldDefaults.outlinedTextFieldColors(
