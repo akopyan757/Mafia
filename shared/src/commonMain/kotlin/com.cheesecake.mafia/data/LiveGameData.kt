@@ -1,14 +1,18 @@
 package com.cheesecake.mafia.data
 
 data class LiveGameData(
-    val id: Int = 1,
-    val players: List<LivePlayerData> = emptyList(),
+    val id: Long = 1,
+    val gameId: Long = 0,
+    val title: String = "",
+    val date: String = "",
     val round: Byte = 0,
-    var firstSpeechPlayer: Int = 0,
+    val firstSpeechPlayer: Int = 0,
     val stage: LiveStage = LiveStage.Start,
     val queueStage: List<LiveStage> = emptyList(),
     val voteCandidates: List<Int> = emptyList(),
+    val totalTime: Long = 0L,
     val nightActions: Map<GameActionType.NightActon, Int> = emptyMap(),
+    val players: List<LivePlayerData> = emptyList(),
 ) {
     val isFirstNight: Boolean
         get() = round == 1.toByte() && stage is LiveStage.Night

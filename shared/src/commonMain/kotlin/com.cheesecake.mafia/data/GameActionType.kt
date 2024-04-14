@@ -15,22 +15,28 @@ import kotlinx.serialization.encoding.Encoder
 sealed interface GameActionType {
 
     @Serializable
-    data class Dead(val dayType: DayType): GameActionType {
-        override fun dayType(): DayType = dayType
-        override fun value(): String  = "Dead" + dayType.value
+    enum class Dead(val value: String, private val _dayType: DayType): GameActionType {
+        Night("DeadNight", DayType.Night),
+        Day("DeadDay", DayType.Day);
+
+        override fun value() = value
+        override fun dayType(): DayType = _dayType
+        companion object {
+            fun ofDayType(dayType: DayType): Dead = entries.first { it._dayType == dayType }
+        }
     }
 
     @Serializable
     enum class DayAction(
-        private val value: String,
+        val value: String,
         private val iconRes: String
     ): GameActionType {
         Voted("Voted", "ic_like_button.xml"),
-        Deleted("Deleted","ic_close.xml"),
+        Deleted("Deleted", "ic_close.xml"),
         ThreeFouls("ThreeFouls", "ic_looks_3.xml");
 
+        override fun value() = value
         override fun iconRes(): String = iconRes
-        override fun value(): String  = value
         override fun dayType(): DayType = DayType.Day
     }
 
@@ -43,8 +49,8 @@ sealed interface GameActionType {
         Doctor("Doctor", GamePlayerRole.Red.Doctor),
         ClientChoose("ClientChoose", GamePlayerRole.Red.Whore);
 
+        override fun value() = value
         override fun iconRes(): String = role.iconRes
-        override fun value(): String  = value
         override fun dayType(): DayType = DayType.Night
 
         companion object {
@@ -62,14 +68,10 @@ sealed interface GameActionType {
     fun dayType(): DayType
 
     companion object {
-        private fun values(): List<GameActionType> {
-            return listOf(Dead(DayType.Day), Dead(DayType.Night)) +
+        fun values(): List<GameActionType> {
+            return Dead.entries +
                     DayAction.entries.toTypedArray() +
                     NightActon.entries.toTypedArray()
-        }
-
-        fun ofValue(value: String): GameActionType? {
-            return values().find { it.value() == value }
         }
     }
 }
@@ -78,9 +80,10 @@ sealed interface GameActionType {
 @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
 @Serializer(forClass = GameActionType::class)
 object GameActionTypeSerializer : KSerializer<GameActionType> {
-    override val descriptor: SerialDescriptor = buildSerialDescriptor("role", kind = SerialKind.CONTEXTUAL)
+    override val descriptor: SerialDescriptor = buildSerialDescriptor("action", kind = SerialKind.CONTEXTUAL)
     override fun deserialize(decoder: Decoder): GameActionType {
-        return GameActionType.ofValue(decoder.decodeString()) ?: GameActionType.Dead(DayType.Day)
+        val value = decoder.decodeString()
+        return GameActionType.values().first { type -> type.value() == value }
     }
 
     override fun serialize(encoder: Encoder, value: GameActionType) {

@@ -5,20 +5,20 @@ import com.cheesecake.mafia.data.GameActionType
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed class HistoryItem(private val _id: Int, val type: DayType) {
+sealed class HistoryItem(private val _id: Long, val type: DayType) {
     @Serializable
-    data class Start(val id: Int): HistoryItem(id, DayType.Day) {
+    data class Start(val id: Long): HistoryItem(id, DayType.Day) {
         override val text: String
             get() = "Старт игры"
     }
 
     @Serializable
-    data class ReVote(val candidates: List<Int>, val id: Int): HistoryItem(id, DayType.Day) {
+    data class ReVote(val candidates: List<Int>, val id: Long): HistoryItem(id, DayType.Day) {
         override val text: String
             get() = "Переголосование между игроками ${candidates.joinToString(separator = ", ")}"
     }
     @Serializable
-    data class Elimination(val candidates: List<Int>, val id: Int): HistoryItem(id,
+    data class Elimination(val candidates: List<Int>, val id: Long): HistoryItem(id,
         DayType.Day
     ) {
         override val text: String
@@ -28,7 +28,7 @@ sealed class HistoryItem(private val _id: Int, val type: DayType) {
                 "Голосованием покидают игроки  ${candidates.joinToString(", ")}"
     }
     @Serializable
-    data class NightAction(val nightAction: GameActionType.NightActon, val player: Int, val id: Int): HistoryItem(id,
+    data class NightAction(val nightAction: GameActionType.NightActon, val player: Int, val id: Long): HistoryItem(id,
         DayType.Night
     ) {
         override val text: String
@@ -43,24 +43,24 @@ sealed class HistoryItem(private val _id: Int, val type: DayType) {
     }
 
     @Serializable
-    data class Nomination(val playerFrom: Int, val playerTo: Int, val id: Int): HistoryItem(id,
+    data class Nomination(val playerFrom: Int, val playerTo: Int, val id: Long): HistoryItem(id,
         DayType.Day
     ) {
         override val text: String get() = "Игрок $playerFrom выставил игрока $playerTo"
     }
     @Serializable
-    data class Fouls(val player: Int, val fouls: Int, val id: Int): HistoryItem(id,
+    data class Fouls(val player: Int, val fouls: Int, val id: Long): HistoryItem(id,
         DayType.Day
     ) {
         override val text: String get() = "Игрок $player получил $fouls фол"
     }
 
     @Serializable
-    data class DeletePlayer(val player: Int, val dayType: DayType, val id: Int): HistoryItem(id, dayType) {
+    data class DeletePlayer(val player: Int, val dayType: DayType, val id: Long): HistoryItem(id, dayType) {
         override val text: String get() = "Игрок $player удален"
     }
 
     open val text: String = ""
 
-    fun id(): Int = _id
+    fun id(): Long = _id
 }

@@ -79,7 +79,7 @@ fun IntCounter(
 @Composable
 fun IntCounterApp() {
     IntCounter(
-        modifier = Modifier.width(180.dp).height(50.dp),
+        modifier = Modifier.width(200.dp).height(50.dp),
         startValue = 10,
         stepValue = 1,
         minValue = 5,

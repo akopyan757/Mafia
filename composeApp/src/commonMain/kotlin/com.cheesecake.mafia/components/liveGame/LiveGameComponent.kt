@@ -1,7 +1,7 @@
 package com.cheesecake.mafia.components.liveGame
 
 import com.arkivanov.decompose.value.MutableValue
-import com.cheesecake.mafia.state.StartGameData
+import com.cheesecake.mafia.state.StartData
 
 interface LiveGameComponent {
 
@@ -9,5 +9,7 @@ interface LiveGameComponent {
 
     fun onFinishGameClicked(gameId: Long)
 
-    data class Model(val data: StartGameData)
+    fun onBackToMenuClicked()
+
+    data class Model(val data: StartData)
 }

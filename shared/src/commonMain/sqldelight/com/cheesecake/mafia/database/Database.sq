@@ -1,18 +1,15 @@
 import kotlin.Boolean;
 
 ---TABLE
-CREATE TABLE IF NOT EXISTS `player`(
-    `id` INTEGER PRIMARY KEY NOT NULL,
-    `name` TEXT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS `game`(
     `id` INTEGER PRIMARY KEY NOT NULL,
     `title` TEXT NOT NULL,
     `date` TEXT NOT NULL,
-    `lastRound` INTEGER NOT NULL,
-    `lastDayType` TEXT NOT NULL,
-    `finishResult` TEXT NOT NULL,
+    `round` INTEGER NOT NULL,
+    `firstSpeechPlayer` INTEGER NOT NULL,
+    `stage` TEXT NOT NULL,
+    `voteCandidates` TEXT NOT NULL,
+    `queueStage` TEXT NOT NULL,
     `totalTime` INTEGER NOT NULL
 );
 
@@ -22,20 +19,17 @@ CREATE TABLE IF NOT EXISTS `playerGame`(
     `number` INTEGER NOT NULL,
     `name` TEXT NOT NULL,
     `role` TEXT NOT NULL,
-    `isWinner` INTEGER AS Boolean DEFAULT 0 NOT NULL,
-    `isAlive` INTEGER AS Boolean DEFAULT 0 NOT NULL,
-    `isDeleted` INTEGER AS Boolean DEFAULT 0 NOT NULL,
-    `actions` TEXT NOT NULL
+    `isNewPlayer` INTEGER AS Boolean NOT NULL ,
+    `isAlive` INTEGER AS Boolean NOT NULL,
+    `isDeleted` INTEGER AS Boolean NOT NULL,
+    `isClient` INTEGER AS Boolean NOT NULL,
+    `isVoted` INTEGER AS Boolean NOT NULL,
+    `isKilled` INTEGER AS Boolean NOT NULL,
+    `actions` TEXT NOT NULL,
+    `fouls` INTEGER NOT NULL,
+    `bestMove` TEXT,
+     PRIMARY KEY (gameId, playerId, number)
 );
-
-selectPlayers:
-SELECT * FROM `player` ORDER BY name ASC;
-
-insertPlayer:
-INSERT INTO `player`(id, name) VALUES (?, ?);
-
-deleteAllPlayers:
-DELETE FROM `player`;
 
 selectAllGames:
 SELECT * FROM `game`;
@@ -44,12 +38,12 @@ selectGameById:
 SELECT * FROM `game` WHERE id == ?;
 
 insertGame:
-INSERT OR REPLACE INTO `game`(id, title, date, lastRound, lastDayType, finishResult, totalTime) VALUES ?;
+INSERT OR REPLACE INTO `game`(
+    id, title, date, round, firstSpeechPlayer, stage, voteCandidates,  queueStage, totalTime
+) VALUES ?;
 
 deleteGameById:
 DELETE FROM `game` WHERE id == ?;
-
-
 
 selectPlayersInGame:
 SELECT * FROM `playerGame` WHERE gameId == ?;
@@ -58,7 +52,10 @@ selectPlayerGamesById:
 SELECT * FROM `playerGame` WHERE playerId == ?;
 
 insertPlayerGame:
-INSERT INTO `playerGame`(playerId, gameId, number, name, role, isWinner, isAlive, isDeleted, actions) VALUES ?;
+INSERT OR REPLACE INTO `playerGame`(
+    playerId, gameId, number, name, role, isNewPlayer, isAlive, isDeleted,
+    isClient, isVoted, isKilled, actions,  fouls, bestMove
+) VALUES ?;
 
 deletePlayerFromGame:
 DELETE FROM `playerGame` WHERE gameId == ?;

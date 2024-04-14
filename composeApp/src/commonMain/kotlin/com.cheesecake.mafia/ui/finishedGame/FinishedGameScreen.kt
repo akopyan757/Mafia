@@ -16,6 +16,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
@@ -30,6 +33,7 @@ import com.cheesecake.mafia.data.resultText
 import com.cheesecake.mafia.state.GameStandingState
 import com.cheesecake.mafia.state.GameStatus
 import com.cheesecake.mafia.ui.GameStanding
+import com.cheesecake.mafia.ui.custom.AcceptDialog
 import com.cheesecake.mafia.viewModel.FinishedGameViewModel
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
@@ -48,6 +52,7 @@ fun FinishedGameScreen(
 ) {
     val result by viewModel.gameDataResult.collectAsState()
     val isDeleted by viewModel.isDeleted.collectAsState()
+    var deleteDialogActive by remember { mutableStateOf(false) }
 
     LaunchedEffect(isDeleted) {
         if (isDeleted) {
@@ -85,10 +90,7 @@ fun FinishedGameScreen(
                     modifier = Modifier.weight(1f)
                 )
                 Button(
-                    onClick = {
-                        viewModel.deleteGame()
-                        onBackPressed()
-                    },
+                    onClick = { deleteDialogActive = true },
                     contentPadding = PaddingValues(2.dp),
                     colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
                 ) {
@@ -120,5 +122,17 @@ fun FinishedGameScreen(
                 }
             )
         }
+    }
+    if (deleteDialogActive) {
+        AcceptDialog(
+            title = "Подтверждение",
+            description = "Вы действительно хотите удалить игру?",
+            onConfirmation = {
+                viewModel.deleteGame()
+                onBackPressed()
+                deleteDialogActive = false
+            },
+            onDismissRequest = { deleteDialogActive = false },
+        )
     }
 }

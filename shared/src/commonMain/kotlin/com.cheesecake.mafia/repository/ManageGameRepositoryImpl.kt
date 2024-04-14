@@ -18,7 +18,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 internal class ManageGameRepositoryImpl(
-    driverFactory: IDriverFactory,
     private val client: HttpClient,
 ) : ManageGameRepository {
 

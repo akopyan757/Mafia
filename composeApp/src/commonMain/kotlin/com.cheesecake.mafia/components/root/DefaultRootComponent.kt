@@ -16,7 +16,7 @@ import com.cheesecake.mafia.components.main.DefaultMainComponent
 import com.cheesecake.mafia.components.main.MainComponent
 import com.cheesecake.mafia.components.newGame.DefaultNewGameComponent
 import com.cheesecake.mafia.components.newGame.NewGameComponent
-import com.cheesecake.mafia.state.StartGameData
+import com.cheesecake.mafia.state.StartData
 import kotlinx.serialization.Serializable
 
 class DefaultRootComponent(
@@ -55,6 +55,7 @@ class DefaultRootComponent(
         DefaultMainComponent(
             componentContext = componentContext,
             onStartNewGame = { navigation.push(Config.NewGame) },
+            onResumeGame = { navigation.push(Config.LiveGame(StartData.ResumeExistGame(it))) },
             onGameItemClicked = { gameId -> navigation.push(Config.FinishedGame(gameId)) }
         )
 
@@ -69,14 +70,17 @@ class DefaultRootComponent(
 
     private fun liveGameComponent(
         componentContext: ComponentContext,
-        data: StartGameData,
+        startData: StartData,
     ): LiveGameComponent =
         DefaultLiveGameComponent(
             componentContext = componentContext,
-            data = data,
+            startData = startData,
             onFinishGame = { gameId ->
                 navigation.popTo(0)
                 navigation.push(Config.FinishedGame(gameId))
+            },
+            onBackToMenu = {
+                navigation.popTo(0)
             }
         )
 
@@ -102,7 +106,7 @@ class DefaultRootComponent(
         data object NewGame : Config()
 
         @Serializable
-        data class LiveGame(val data: StartGameData) : Config()
+        data class LiveGame(val data: StartData) : Config()
 
         @Serializable
         data class FinishedGame(val gameId: Long) : Config()

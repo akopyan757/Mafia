@@ -1,10 +1,12 @@
 package com.cheesecake.mafia.ui.main
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.White
 import com.cheesecake.mafia.components.main.MainComponent
+import com.cheesecake.mafia.data.LiveGameData
+import com.cheesecake.mafia.data.onSuccess
 import com.cheesecake.mafia.viewModel.MainViewModel
 import org.koin.compose.koinInject
 
@@ -24,6 +28,7 @@ fun MainAdminScreen(component: MainComponent) {
     val viewModel = koinInject<MainViewModel>()
     MainAdminScreen(
         viewModel,
+        onLiveGameItemClicked = component::onResumeGameClicked,
         onNewGameClicked = component::omStartNewGameClicked,
         onGameItemClicked = component::onGameClicked,
     )
@@ -33,12 +38,17 @@ fun MainAdminScreen(component: MainComponent) {
 fun MainAdminScreen(
     viewModel: MainViewModel,
     onNewGameClicked: () -> Unit,
+    onLiveGameItemClicked: (LiveGameData) -> Unit,
     onGameItemClicked: (gameId: Long) -> Unit,
 ) {
-    val gameItems by viewModel.gameItems.collectAsState()
-    val dates by viewModel.dates.collectAsState()
+    val liveGames by viewModel.liveGames.collectAsState()
+    val gameItems by viewModel.finishedGames.collectAsState()
+    val dates by viewModel.finishedGameDates.collectAsState()
 
-    Column(modifier = Modifier.padding(8.dp)) {
+    Column(
+        modifier = Modifier.padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Button(
             onClick = { onNewGameClicked() },
             colors = ButtonDefaults.buttonColors(
@@ -52,7 +62,16 @@ fun MainAdminScreen(
                 color = White
             )
         }
-        GamesViews(
+        if (liveGames.isNotEmpty()) {
+            LiveGamesViews(
+                modifier = Modifier,
+                liveGames = liveGames,
+                onGameItemClicked = { liveGameData ->
+                    onLiveGameItemClicked(liveGameData)
+                }
+            )
+        }
+        FinishedGamesViews(
             modifier = Modifier.weight(1f),
             dates = dates,
             gameItems = gameItems,

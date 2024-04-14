@@ -3,7 +3,8 @@ package com.cheesecake.mafia.data
 import com.cheesecake.mafia.common.Item
 
 data class LivePlayerData(
-    val playerId: Long = -1L,
+    val playerId: Long = 0L,
+    val gameId: Long = 0L,
     val number: Int = 1,
     val name: String = "",
     val role: GamePlayerRole = GamePlayerRole.None,

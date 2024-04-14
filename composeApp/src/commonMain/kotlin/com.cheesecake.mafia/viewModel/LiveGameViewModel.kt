@@ -3,28 +3,34 @@ package com.cheesecake.mafia.viewModel
 import com.cheesecake.mafia.common.changeItem
 import com.cheesecake.mafia.common.changeItems
 import com.cheesecake.mafia.data.ApiResult
-import com.cheesecake.mafia.data.DayType
 import com.cheesecake.mafia.data.GameAction
 import com.cheesecake.mafia.data.GameActionType
-import com.cheesecake.mafia.data.GameFinishResult
 import com.cheesecake.mafia.data.InteractiveScreenState
 import com.cheesecake.mafia.data.LiveGameData
 import com.cheesecake.mafia.data.LivePlayerData
 import com.cheesecake.mafia.data.LiveStage
+import com.cheesecake.mafia.data.onError
+import com.cheesecake.mafia.data.onSuccess
 import com.cheesecake.mafia.repository.InteractiveGameRepository
+import com.cheesecake.mafia.repository.LiveGameRepository
 import com.cheesecake.mafia.repository.ManageGameRepository
 import com.cheesecake.mafia.state.HistoryItem
 import com.cheesecake.mafia.state.SelectPlayerState
-import com.cheesecake.mafia.state.StartGameData
+import com.cheesecake.mafia.state.StartData
 import com.cheesecake.mafia.state.buildProtocol
 import dev.icerock.moko.mvvm.viewmodel.ViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class LiveGameViewModel(
-    private val startGameData: StartGameData,
+    startData: StartData,
     private val manageGameRepository: ManageGameRepository,
+    private val liveGameRepository: LiveGameRepository,
     private val interactiveGameRepository: InteractiveGameRepository,
 ): ViewModel() {
     companion object {
@@ -39,6 +45,8 @@ class LiveGameViewModel(
     private val _showInteractive = MutableStateFlow(true)
     private val _showInteractiveCandidates = MutableStateFlow(true)
     private val _showInteractiveTimer = MutableStateFlow(true)
+    private val _timer = MutableStateFlow(0L)
+    private val _errorMessage = MutableStateFlow("")
 
     val state: StateFlow<LiveGameData> get() = _state
     val history: StateFlow<List<HistoryItem>> get() = _history
@@ -48,30 +56,68 @@ class LiveGameViewModel(
     val showInteractive: StateFlow<Boolean> get() = _showInteractive
     val showInteractiveCandidates: StateFlow<Boolean> get() = _showInteractiveCandidates
     val showInteractiveTimer: StateFlow<Boolean> get() = _showInteractiveTimer
-
+    val timer: StateFlow<Long> = _timer
+    val errorMessage: StateFlow<String> = _errorMessage
 
     init {
-        val startPlayers = startGameData.items.map { item ->
+        when (startData) {
+            is StartData.NewGame -> initNewGame(startData)
+            is StartData.ResumeExistGame -> resumeExistGame(startData)
+        }
+    }
+
+    private fun initNewGame(data: StartData.NewGame) {
+        val gameId = Random.nextLong()
+        val startPlayers = data.items.map { item ->
             LivePlayerData(
-                item.player.id,
-                item.number,
-                item.player.name,
-                item.role,
-                item.player is SelectPlayerState.New
+                gameId = gameId,
+                playerId = item.player.id,
+                number = item.number,
+                name = item.player.name,
+                role = item.role,
+                isNewPlayer = item.player is SelectPlayerState.New
             )
         }
         val speechPlayers = startPlayers.filter { it.isAlive && !it.isClient }
         val startQueue = _state.value.queueStage
-            .push(speechPlayers.map { LiveStage.Day.Speech(it.number) })
-            .push(LiveStage.Day.Vote())
+            .push(speechPlayers.map { LiveStage.Day.Speech(it.number, false) })
+            .push(LiveStage.Day.Vote(false))
         addHistoryItem(HistoryItem.Start(getStateId()))
         changeStateAndNext(historyCached = false) { state ->
+            print("start game: ${gameId}")
             state.copy(
+                gameId = gameId,
+                title = data.title,
+                date = data.date,
                 firstSpeechPlayer = speechPlayers.first().number,
                 players = startPlayers,
                 queueStage = startQueue,
             )
         }
+        initTimer()
+    }
+
+    private fun resumeExistGame(existGame: StartData.ResumeExistGame) {
+        _state.value = existGame.data.let { data ->
+            data.copy(players = data.players.sortedBy { it.number })
+        }
+        initTimer(existGame.data.totalTime)
+    }
+
+    private fun initTimer(value: Long = 0L) {
+        CoroutineScope(Dispatchers.Main).launch {
+            _timer.value = value
+            while (true) {
+                delay(1000L)
+                if (_gameActive.value) {
+                    _timer.value += 1
+                }
+            }
+        }
+    }
+
+    fun resetErrorMessage() {
+        _errorMessage.value = ""
     }
 
     fun undoState() {
@@ -101,18 +147,13 @@ class LiveGameViewModel(
         _gameActive.value = false
     }
 
-    fun saveGameRepository(time: Long, winner: GameFinishResult, onUploaded: (gameId: Long) -> Unit) {
+    fun saveGameRepository(onUploaded: (gameId: Long) -> Unit) {
         viewModelScope.launch {
-            val data = buildProtocol(
-                startGameData = startGameData,
-                liveGameData = _state.value,
-                finishResult = winner,
-                totalTime = time,
-            )
+            val data = buildProtocol(_state.value, _timer.value)
             interactiveGameRepository.clearState()
             when (val result = manageGameRepository.insert(data)) {
                 is ApiResult.Success -> {
-                    println("isSaved")
+                    liveGameRepository.deleteById(_state.value.gameId)
                     onUploaded(result.data)
                 }
                 else -> {}
@@ -159,12 +200,16 @@ class LiveGameViewModel(
                         val players = state.players.map { player -> player.copy(isClient = false) }
                         state.copy(
                             queueStage = queue,
-                            stage = LiveStage.Night(),
+                            stage = LiveStage.Night,
                             round = state.round.inc(),
-                            players = players
+                            players = players,
+                            voteCandidates = emptyList(),
                         )
                     } else {
-                        state.copy(queueStage = queue, stage = currentStage.copy(candidates = state.voteCandidates))
+                        state.copy(
+                            queueStage = queue,
+                            stage = currentStage,
+                        )
                     }
                 } else if (currentStage is LiveStage.Night) {
                     state.copy(
@@ -210,7 +255,7 @@ class LiveGameViewModel(
         changeStateAndNext(historyCached = true)  { state ->
             val queue = state.queueStage
                 .push(votedPlayers.map { LiveStage.Day.LastVotedSpeech(it) })
-                .push(LiveStage.Night())
+                .push(LiveStage.Night)
             state.copy(
                 queueStage = queue,
                 players = state.players.changeItems(votedPlayers) { player ->
@@ -219,7 +264,7 @@ class LiveGameViewModel(
                         isVoted = true,
                         actions = player.actions + listOf(
                             GameAction(state.round, GameActionType.DayAction.Voted),
-                            GameAction(state.round.inc(), GameActionType.Dead(DayType.Day))
+                            GameAction(state.round.inc(), GameActionType.Dead.Day)
                         )
                     )
                 }
@@ -246,8 +291,8 @@ class LiveGameViewModel(
             speechPlayers = groups[false].orEmpty() + groups[true].orEmpty()
             val queue = newState.queueStage
                 .push(state.lastKilledPlayers.sorted().map { LiveStage.Day.LastDeathSpeech(it) })
-                .push(speechPlayers.map { LiveStage.Day.Speech(it) })
-                .push(LiveStage.Day.Vote())
+                .push(speechPlayers.map { LiveStage.Day.Speech(it, false) })
+                .push(LiveStage.Day.Vote(reVote = false))
             val firstSpeech = speechPlayers.firstOrNull() ?: 0
             newState.copy(
                 queueStage = queue,
@@ -276,7 +321,7 @@ class LiveGameViewModel(
         val transform: (LiveGameData) -> LiveGameData = { state ->
             state.copy(
                 queueStage = if (skipToNight) {
-                    listOf(LiveStage.Night())
+                    listOf(LiveStage.Night)
                 } else {
                     state.queueStage
                 },
@@ -288,7 +333,7 @@ class LiveGameViewModel(
                         fouls = 4,
                         actions = player.actions +
                             listOf(GameAction(state.round, GameActionType.DayAction.Deleted)) +
-                            listOf(GameAction(state.round, GameActionType.Dead(state.stage.type))),
+                            listOf(GameAction(state.round, GameActionType.Dead.ofDayType(state.stage.dayType))),
                     )
                 }
             )
@@ -300,9 +345,29 @@ class LiveGameViewModel(
         }
         addHistoryItems(
             numbers.map { playerNumber ->
-                HistoryItem.DeletePlayer(playerNumber, _state.value.stage.type, getStateId())
+                HistoryItem.DeletePlayer(playerNumber, _state.value.stage.dayType, getStateId())
             }
         )
+    }
+
+    fun stopGame(onStopped: () -> Unit) {
+        viewModelScope.launch {
+            val state = _state.value
+            liveGameRepository.insertOrUpdate(
+                state.copy(totalTime = _timer.value)
+            )
+            onStopped()
+        }
+    }
+
+    fun deleteGame(onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            print("delete id = ${_state.value.gameId}")
+            liveGameRepository.deleteById(_state.value.gameId).collect { result ->
+                result.onSuccess { onSuccess() }
+                    .onError { _errorMessage.value = it.message.toString() }
+            }
+        }
     }
 
     private fun List<LiveStage>.push(items: List<LiveStage>): List<LiveStage> {
@@ -329,7 +394,7 @@ class LiveGameViewModel(
                 players[index] = player.copy(
                     actions = player.actions
                         + listOf(GameAction(round, nightAction)) +
-                        if (isKilled) listOf(GameAction(round, GameActionType.Dead(DayType.Night))) else emptyList(),
+                        if (isKilled) listOf(GameAction(round, GameActionType.Dead.Night)) else emptyList(),
                     isClient = player.number == lastClientPlayer,
                     isKilled = player.isKilled || isKilled,
                     isAlive = player.isAlive && player.number !in lastKilledPlayers,
@@ -360,13 +425,20 @@ class LiveGameViewModel(
         _history.value += historyItems
     }
 
+    private fun LiveGameData.takeTime(): LiveGameData {
+        return copy(totalTime = _timer.value)
+    }
+
     private fun changeState(
         cached: Boolean = false,
         transform: (LiveGameData) -> LiveGameData
     ) {
         val oldState = _state.value
-        val newState = transform(oldState).incStateId()
+        val newState = transform(oldState).takeTime().incStateId()
         _state.value = newState
+        viewModelScope.launch {
+            liveGameRepository.insertOrUpdate(newState).collect {}
+        }
         interactiveGameRepository.saveState(InteractiveScreenState.LiveGame(newState))
         if (cached) {
             val undoHistory = _undoStack.value
@@ -385,7 +457,7 @@ class LiveGameViewModel(
         return copy(id = id + 1)
     }
 
-    private fun getStateId(): Int {
+    private fun getStateId(): Long {
         return _state.value.id
     }
 }

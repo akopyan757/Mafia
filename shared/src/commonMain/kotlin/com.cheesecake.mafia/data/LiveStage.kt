@@ -1,28 +1,41 @@
 package com.cheesecake.mafia.data
 
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
-sealed class LiveStage(val type: DayType) {
+@Serializable
+sealed class LiveStage(val dayType: DayType) {
 
+    @Serializable
+    @SerialName("Start")
     data object Start: LiveStage(DayType.Night)
 
     sealed class Day : LiveStage(DayType.Day) {
+
+        @Serializable
+        @SerialName("LastDeathSpeech")
         data class LastDeathSpeech(override val playerNumber: Int): Day()
+
+        @Serializable
+        @SerialName("LastVotedSpeech")
         data class LastVotedSpeech(override val playerNumber: Int): Day()
+
+        @Serializable
+        @SerialName("Speech")
         data class Speech(
             override val playerNumber: Int,
-            val candidateForElimination: Boolean = false,
-        ): Day()
-        data class Vote(
-            val reVote: Boolean = false,
-            val candidates: List<Int> = emptyList(),
+            val candidateForElimination: Boolean,
         ): Day()
 
-        override val isSpeech = this !is Vote
+        @Serializable
+        @SerialName("Vote")
+        data class Vote(val reVote: Boolean): Day()
     }
 
-    class Night : LiveStage(DayType.Night)
+    @Serializable
+    @SerialName("Night")
+    data object Night : LiveStage(DayType.Night)
 
-    open val isSpeech: Boolean = false
     open val playerNumber: Int = -1
 
     fun canAddCandidate(): Boolean {

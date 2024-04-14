@@ -53,6 +53,7 @@ import com.cheesecake.mafia.data.LivePlayerData
 import com.cheesecake.mafia.data.LiveStage
 import com.cheesecake.mafia.ui.GameStanding
 import com.cheesecake.mafia.ui.candidateSpeechTimeSeconds
+import com.cheesecake.mafia.ui.custom.ErrorMessageWidget
 import com.cheesecake.mafia.ui.liveGame.widgets.LiveDeletePlayerWidget
 import com.cheesecake.mafia.ui.liveGame.widgets.LiveGameTimer
 import com.cheesecake.mafia.ui.liveGame.widgets.LiveGameVoteCandidatesWidget
@@ -68,14 +69,20 @@ import org.koin.core.parameter.parametersOf
 fun LiveGameScreen(component: LiveGameComponent) {
     val players by component.model.subscribeAsState()
     val viewModel = koinInject<LiveGameViewModel> { parametersOf(players.data) }
-    LiveGameScreen(viewModel, onFinishGame = component::onFinishGameClicked)
+    LiveGameScreen(
+        viewModel,
+        onFinishGame = component::onFinishGameClicked,
+        onBackToMenu = component::onBackToMenuClicked
+    )
 }
 
 @Composable
 fun LiveGameScreen(
     viewModel: LiveGameViewModel,
     onFinishGame: (gameId: Long) -> Unit,
+    onBackToMenu: () -> Unit,
 ) {
+    val timer by viewModel.timer.collectAsState()
     val state by viewModel.state.collectAsState()
     val history by viewModel.history.collectAsState()
     val undoStack by viewModel.undoStack.collectAsState()
@@ -84,6 +91,7 @@ fun LiveGameScreen(
     val showInteractive by viewModel.showInteractive.collectAsState()
     val showInteractiveTimer by viewModel.showInteractiveTimer.collectAsState()
     val showInteractiveCandidates by viewModel.showInteractiveCandidates.collectAsState()
+    val errorMessage by viewModel.errorMessage.collectAsState()
     var showRoles by remember { mutableStateOf(true) }
     var showOnlyAlive by remember { mutableStateOf(false) }
     var actionSelections by remember { mutableStateOf(mapOf<GameActionType.NightActon, Int>()) }
@@ -114,6 +122,25 @@ fun LiveGameScreen(
                     modifier = Modifier.wrapContentSize().defaultMinSize(minHeight = 200.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start),
                 ) {
+                    LiveGameTimer(
+                        modifier = Modifier.wrapContentWidth().width(200.dp),
+                        timer = timer,
+                        finishResult = state.winner,
+                        onPauseGame = viewModel::pauseGame,
+                        onFinishGame = {
+                            viewModel.saveGameRepository { gameId -> onFinishGame(gameId) }
+                        },
+                        onStopGame =  {
+                            viewModel.stopGame { onBackToMenu() }
+                        },
+                        onDeleteGame = {
+                            viewModel.deleteGame { onBackToMenu() }
+                        },
+                        redoActive = redoStack.size > 0,
+                        undoActive = undoStack.size > 0,
+                        onUndo = { viewModel.undoState() },
+                        onRedo = { viewModel.redoState() }
+                    )
                     SpeechStateWidget(
                         modifier = Modifier,
                         stageAction = state.stage,
@@ -133,7 +160,7 @@ fun LiveGameScreen(
                     }
                     if (state.stage is LiveStage.Night) {
                         LiveNightWidget(
-                            modifier = Modifier.wrapContentSize(),
+                            modifier = Modifier.wrapContentSize().width(200.dp),
                             allActions = viewModel.getNightGameActions(),
                             killedPlayers = state.lastKilledPlayers,
                             clientChosen = state.lastClientPlayer,
@@ -189,48 +216,6 @@ fun LiveGameScreen(
                     }
                 }
             }
-            Column(
-                modifier = Modifier.width(250.dp).fillMaxHeight(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                 val finishResult = state.winner
-                 LiveGameTimer(
-                    modifier = Modifier.fillMaxWidth(),
-                    active = gameActive,
-                    finishResult = finishResult,
-                    onPauseGame = viewModel::pauseGame,
-                    onStopGame = { time ->
-                        finishResult?.let {
-                            viewModel.saveGameRepository(time, finishResult) { gameId ->
-                                onFinishGame(gameId)
-                            }
-                        }
-                    },
-                    redoActive = redoStack.size > 0,
-                    undoActive = undoStack.size > 0,
-                    onUndo = { viewModel.undoState() }
-                 ) { viewModel.redoState() }
-                 Card(
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f),
-                    backgroundColor = White,
-                ) {
-                    LazyColumn(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(history) { history ->
-                            Text(
-                                modifier = Modifier.fillMaxWidth(),
-                                text = history.text,
-                                style = MaterialTheme.typography.body2.copy(fontSize = 10.sp),
-                                color = BlackDark,
-                                textAlign = TextAlign.Center,
-                            )
-                        }
-                    }
-                }
-            }
         }
         if (!gameActive) {
             Box(
@@ -250,6 +235,13 @@ fun LiveGameScreen(
                     )
                 }
             }
+        }
+        if (errorMessage.isNotEmpty()) {
+            ErrorMessageWidget(
+                modifier = Modifier.fillMaxWidth().padding(8.dp).align(Alignment.BottomCenter),
+                description = errorMessage,
+                onDismiss = { viewModel.resetErrorMessage() }
+            )
         }
     }
 }
@@ -300,7 +292,7 @@ fun LiveGameStanding(
             id = 0,
             status = GameStatus.Live,
             round = round,
-            dayType = stage.type,
+            dayType = stage.dayType,
             isShowRoles = showRoles,
         ),
         itemsCount = players.size,

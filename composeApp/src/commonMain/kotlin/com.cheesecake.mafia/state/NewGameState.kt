@@ -22,7 +22,7 @@ data class NewGameState(
                 item
         }
 
-    fun toStartData() = StartGameData(filledPlayers, date, title)
+    fun toStartData() = StartData.NewGame(filledPlayers, date, title)
 
     val rolesCount: List<Pair<GamePlayerRole, Int>>
         get() = filledPlayers

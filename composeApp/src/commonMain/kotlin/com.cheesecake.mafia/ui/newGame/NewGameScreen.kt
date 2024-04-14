@@ -32,7 +32,7 @@ import com.cheesecake.mafia.state.NewGamePlayerItem
 import com.cheesecake.mafia.state.PlayerState
 import com.cheesecake.mafia.data.DayType
 import com.cheesecake.mafia.data.roleValues
-import com.cheesecake.mafia.state.StartGameData
+import com.cheesecake.mafia.state.StartData
 import com.cheesecake.mafia.ui.GameStanding
 import com.cheesecake.mafia.ui.custom.DateSelectorTextField
 import com.cheesecake.mafia.ui.custom.IntCounter
@@ -47,7 +47,7 @@ fun NewGameScreen(component: NewGameComponent) {
     NewGameStanding(
         viewModel = viewModel,
         onBackPressed = component::onBackClicked,
-        onStartGameClicked = component::onStartGameClicked
+        onStartGameClicked = component::onStartNewGameClicked
     )
 }
 
@@ -55,7 +55,7 @@ fun NewGameScreen(component: NewGameComponent) {
 fun NewGameStanding(
     viewModel: NewGameViewModel,
     onBackPressed: () -> Unit,
-    onStartGameClicked: (date: StartGameData) -> Unit,
+    onStartGameClicked: (date: StartData.NewGame) -> Unit,
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -188,7 +188,7 @@ fun NewGamePlayerCount(
             color = BlackDark,
         )
         IntCounter(
-            modifier = modifier.width(180.dp).height(50.dp),
+            modifier = modifier.width(200.dp).height(60.dp),
             minValue = 5,
             maxValue = 20,
             stepValue = 1,

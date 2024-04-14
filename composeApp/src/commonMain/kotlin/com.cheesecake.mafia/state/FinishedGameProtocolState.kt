@@ -9,20 +9,18 @@ import com.cheesecake.mafia.data.LivePlayerData
 import kotlin.random.Random
 
 fun buildProtocol(
-    startGameData: StartGameData,
-    liveGameData: LiveGameData,
-    finishResult: GameFinishResult,
+    state: LiveGameData,
     totalTime: Long,
 ): GameData {
-    val gameId = Random(startGameData.hashCode()).nextInt().toLong()
+    val winner = state.winner ?: GameFinishResult.None
     return GameData(
-        id = gameId,
-        title = startGameData.title,
-        date = startGameData.date,
-        players = liveGameData.players.map { it.toPlayerGameData(gameId, finishResult) },
-        lastRound = liveGameData.round,
-        lastDayType = liveGameData.stage.type,
-        finishResult = finishResult,
+        id = state.id,
+        title = state.title,
+        date = state.date,
+        players = state.players.map { it.toPlayerGameData(state.id, winner) },
+        lastRound = state.round,
+        lastDayType = state.stage.dayType,
+        finishResult = winner,
         totalTime = totalTime,
     )
 }
