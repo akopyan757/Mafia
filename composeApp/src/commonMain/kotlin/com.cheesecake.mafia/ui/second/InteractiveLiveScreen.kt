@@ -94,12 +94,13 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, settings: SettingsData) {
                 when (stage) {
                     is LiveStage.Day.Vote -> {
                         val text = if (!stage.reVote) "Голосование" else "Переголосование"
-                        Text(text, style = MaterialTheme.typography.h3, color = White)
+                        Text(text, style = MaterialTheme.typography.h3.copy(fontSize = 64.sp), color = White)
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             liveGameData.voteCandidates.forEach { number ->
                                 PlayerNumberWidget(
-                                    modifier = Modifier.size(60.dp),
+                                    modifier = Modifier.size(100.dp),
                                     number = number,
+                                    fontSize = 84.sp,
                                 )
                             }
                         }
@@ -130,12 +131,13 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, settings: SettingsData) {
                             ) {
                                 Text(
                                     text = text,
-                                    style = MaterialTheme.typography.h5,
+                                    style = MaterialTheme.typography.h5.copy(fontSize = 48.sp),
                                     color = White,
                                 )
                                 PlayerNumberWidget(
-                                    modifier = Modifier.size(60.dp),
+                                    modifier = Modifier.size(100.dp),
                                     number = stage.playerNumber,
+                                    fontSize = 84.sp,
                                 )
                             }
                             if (right.size == 1 && settings.showTimer) {
@@ -151,7 +153,7 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, settings: SettingsData) {
                             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                 Text(
                                     text = "Выставленные кандидатуры",
-                                    style = MaterialTheme.typography.h5,
+                                    style = MaterialTheme.typography.h5.copy(fontSize = 40.sp),
                                     modifier = Modifier.align(Alignment.CenterHorizontally),
                                     color = White,
                                 )
@@ -163,8 +165,9 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, settings: SettingsData) {
                                 ) {
                                     liveGameData.voteCandidates.forEach { number ->
                                         PlayerNumberWidget(
-                                            modifier = Modifier.size(60.dp),
+                                            modifier = Modifier.size(80.dp),
                                             number = number,
+                                            fontSize = 64.sp
                                         )
                                     }
                                 }
@@ -173,7 +176,7 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, settings: SettingsData) {
                     }
 
                     is LiveStage.Night -> {
-                        Text("Ночь", style = MaterialTheme.typography.h3, color = White)
+                        Text("Ночь", style = MaterialTheme.typography.h3.copy(fontSize = 84.sp), color = White)
                     }
 
                     else -> {}
@@ -205,17 +208,17 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, settings: SettingsData) {
 @Composable
 private fun TimerWidget(timer: SettingsData) {
     if (timer.showTimer) {
-        Box(modifier = Modifier.size(120.dp)) {
+        Box(modifier = Modifier.size(160.dp)) {
             CircularProgressIndicator(
                 modifier = Modifier.fillMaxSize(),
                 progress = timer.timeValue / timer.timerTotal.toFloat(),
-                color = Blue.copy(0.7f),
-                strokeWidth = 10.dp,
+                color = if (timer.timeValue > 10) Blue.copy(0.7f) else Red.copy(0.7f),
+                strokeWidth = 16.dp,
             )
             Text(
                 text = timer.timeValue.toString(),
-                style = MaterialTheme.typography.h3,
-                color = White,
+                style = MaterialTheme.typography.h3.copy(fontSize = 84.sp),
+                color = if (timer.timeValue > 10) White else Red.copy(0.7f),
                 modifier = Modifier.align(Alignment.Center)
             )
         }
@@ -252,14 +255,15 @@ private fun PlayerItem(
                 ) {
                     Spacer(Modifier.weight(0.3F))
                     PlayerNumberWidget(
-                        modifier = Modifier.size(70.dp),
+                        modifier = Modifier.size(100.dp),
                         number = livePlayerData.number,
                         isAlive = livePlayerData.isAlive,
+                        fontSize = 84.sp,
                     )
                     Text(
                         modifier = Modifier.padding(8.dp),
                         text = livePlayerData.name,
-                        style = MaterialTheme.typography.h5.copy(fontSize = 30.sp),
+                        style = MaterialTheme.typography.h5.copy(fontSize = 64.sp),
                         color = tintColor
                     )
                     Spacer(Modifier.weight(0.2F))
@@ -270,15 +274,15 @@ private fun PlayerItem(
                         if (livePlayerData.isAlive) {
                             if (livePlayerData.isClient) {
                                 Icon(
-                                    modifier = Modifier.size(48.dp),
+                                    modifier = Modifier.size(64.dp),
                                     painter = imageResources("ic_role_whore.xml"),
                                     contentDescription = null,
                                     tint = Red,
                                 )
                             }
-                            (0 until livePlayerData.fouls).forEach {
+                            repeat(livePlayerData.fouls) {
                                 Icon(
-                                    modifier = Modifier.size(48.dp),
+                                    modifier = Modifier.size(84.dp),
                                     painter = imageResources("ic_check_circle.xml"),
                                     contentDescription = null,
                                     tint = tintColor
@@ -287,29 +291,30 @@ private fun PlayerItem(
                         } else if (livePlayerData.isDeleted) {
                             Text(
                                 text = "Удален",
-                                style = MaterialTheme.typography.h5,
+                                style = MaterialTheme.typography.h5.copy(fontSize = 32.sp),
                                 color = tintColor
                             )
                         } else if (livePlayerData.isVoted) {
                             Text(
                                 text = "Заголосован",
-                                style = MaterialTheme.typography.h5,
+                                style = MaterialTheme.typography.h5.copy(fontSize = 32.sp),
                                 color = tintColor
                             )
                         } else if (livePlayerData.isKilled) {
-                            Text(
-                                text = "Убит",
-                                style = MaterialTheme.typography.h5,
-                                color = tintColor
-                            )
+                            if (livePlayerData.bestMove.isNotEmpty()) {
+                                Text(
+                                    text = "Убит (ЛХ: ${livePlayerData.bestMove.joinToString(", ")})",
+                                    style = MaterialTheme.typography.h5.copy(fontSize = 32.sp),
+                                    color = tintColor
+                                )
+                            } else {
+                                Text(
+                                    text = "Убит",
+                                    style = MaterialTheme.typography.h5.copy(fontSize = 32.sp),
+                                    color = tintColor
+                                )
+                            }
                         }
-                    }
-                    if (livePlayerData.bestMove.isNotEmpty()) {
-                        Text(
-                            text = "Лучших ход: ${livePlayerData.bestMove.joinToString(", ")}",
-                            style = MaterialTheme.typography.h5,
-                            color = tintColor,
-                        )
                     }
                     Spacer(Modifier.weight(0.3F))
                 }

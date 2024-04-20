@@ -19,7 +19,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.LogoTint
 import com.cheesecake.mafia.common.PlayersColors
@@ -77,8 +79,9 @@ fun InteractiveNewGameScreen() {
 @Composable
 fun PlayerNumberWidget(
     modifier: Modifier = Modifier,
-    number: Int,
+    number: Int = 1,
     isAlive: Boolean = true,
+    fontSize: TextUnit = 24.sp,
 ) {
     val index = (number - 1) % PlayersColors.size
     val backgroundColor = if (isAlive) PlayersColors[index] else BlackDark
@@ -91,7 +94,7 @@ fun PlayerNumberWidget(
         Box(modifier = Modifier.fillMaxSize()) {
             Text(
                 text = number.toString(),
-                style = MaterialTheme.typography.h3,
+                style = MaterialTheme.typography.h3.copy(fontSize = fontSize),
                 color = tintColor,
                 modifier = Modifier.align(Alignment.Center),
             )

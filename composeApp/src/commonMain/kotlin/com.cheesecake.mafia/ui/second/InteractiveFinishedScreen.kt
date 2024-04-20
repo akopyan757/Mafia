@@ -79,7 +79,7 @@ fun InteractiveFinishedScreen(gameData: GameData) {
             ) {
                 Text(
                     text = gameData.finishResult.resultText(),
-                    style = MaterialTheme.typography.h3,
+                    style = MaterialTheme.typography.h3.copy(fontSize = 54.sp),
                     color = White,
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -123,13 +123,14 @@ private fun PlayerItem(
                 ) {
                     Spacer(Modifier.weight(0.3F))
                     PlayerNumberWidget(
-                        modifier = Modifier.size(70.dp),
+                        modifier = Modifier.size(100.dp),
                         number = playerData.number.toInt(),
+                        fontSize = 84.sp,
                     )
                     Text(
                         modifier = Modifier.padding(8.dp),
                         text = playerData.name,
-                        style = MaterialTheme.typography.h5.copy(fontSize = 30.sp),
+                        style = MaterialTheme.typography.h5.copy(fontSize = 64.sp),
                         color = White
                     )
                     Spacer(Modifier.weight(0.2F))
@@ -147,13 +148,13 @@ private fun PlayerItem(
                                 Icon(
                                     painter = imageResources(role.iconRes),
                                     contentDescription = null,
-                                    modifier = Modifier.size(48.dp).padding(start = 16.dp),
+                                    modifier = Modifier.size(64.dp).padding(start = 16.dp),
                                     tint = role.secondaryColor(),
                                 )
                             }
                             Text(
                                 text = role.name,
-                                style = MaterialTheme.typography.h6,
+                                style = MaterialTheme.typography.h6.copy(fontSize = 48.sp),
                                 textAlign = TextAlign.Center,
                                 color = role.secondaryColor(),
                                 modifier = Modifier.weight(1f)
@@ -163,8 +164,9 @@ private fun PlayerItem(
                     if (playerData.bestMove.isNotEmpty()) {
                         Text(
                             text = "Лучших ход: ${playerData.bestMove.joinToString(", ")}",
-                            style = MaterialTheme.typography.h5,
+                            style = MaterialTheme.typography.h5.copy(fontSize = 32.sp),
                             color = White,
+                            modifier = Modifier.padding(top = 8.dp)
                         )
                     }
                     Spacer(Modifier.weight(0.3F))
