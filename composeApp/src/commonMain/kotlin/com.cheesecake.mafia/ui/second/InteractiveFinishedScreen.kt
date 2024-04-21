@@ -123,7 +123,7 @@ private fun PlayerItem(
                 ) {
                     Spacer(Modifier.weight(0.3F))
                     PlayerNumberWidget(
-                        modifier = Modifier.size(100.dp),
+                        modifier = Modifier.size(84.dp),
                         number = playerData.number.toInt(),
                         fontSize = 84.sp,
                     )

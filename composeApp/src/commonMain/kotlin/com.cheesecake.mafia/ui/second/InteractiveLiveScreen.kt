@@ -98,9 +98,9 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, settings: SettingsData) {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             liveGameData.voteCandidates.forEach { number ->
                                 PlayerNumberWidget(
-                                    modifier = Modifier.size(100.dp),
+                                    modifier = Modifier.size(82.dp),
                                     number = number,
-                                    fontSize = 84.sp,
+                                    fontSize = 72.sp,
                                 )
                             }
                         }
@@ -135,9 +135,9 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, settings: SettingsData) {
                                     color = White,
                                 )
                                 PlayerNumberWidget(
-                                    modifier = Modifier.size(100.dp),
+                                    modifier = Modifier.size(82.dp),
                                     number = stage.playerNumber,
-                                    fontSize = 84.sp,
+                                    fontSize = 72.sp,
                                 )
                             }
                             if (right.size == 1 && settings.showTimer) {
@@ -176,7 +176,7 @@ fun InteractiveLiveScreen(liveGameData: LiveGameData, settings: SettingsData) {
                     }
 
                     is LiveStage.Night -> {
-                        Text("Ночь", style = MaterialTheme.typography.h3.copy(fontSize = 84.sp), color = White)
+                        Text("Ночь", style = MaterialTheme.typography.h3.copy(fontSize = 72.sp), color = White)
                     }
 
                     else -> {}
@@ -217,7 +217,7 @@ private fun TimerWidget(timer: SettingsData) {
             )
             Text(
                 text = timer.timeValue.toString(),
-                style = MaterialTheme.typography.h3.copy(fontSize = 84.sp),
+                style = MaterialTheme.typography.h3.copy(fontSize = 72.sp),
                 color = if (timer.timeValue > 10) White else Red.copy(0.7f),
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -255,10 +255,10 @@ private fun PlayerItem(
                 ) {
                     Spacer(Modifier.weight(0.3F))
                     PlayerNumberWidget(
-                        modifier = Modifier.size(100.dp),
+                        modifier = Modifier.size(84.dp),
                         number = livePlayerData.number,
                         isAlive = livePlayerData.isAlive,
-                        fontSize = 84.sp,
+                        fontSize = 72.sp,
                     )
                     Text(
                         modifier = Modifier.padding(8.dp),

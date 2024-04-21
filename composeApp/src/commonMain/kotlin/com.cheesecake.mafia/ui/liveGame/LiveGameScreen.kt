@@ -160,7 +160,7 @@ fun LiveGameScreen(
                     }
                     if (state.stage is LiveStage.Night) {
                         LiveNightWidget(
-                            modifier = Modifier.wrapContentSize().width(200.dp),
+                            modifier = Modifier.wrapContentSize(),
                             allActions = viewModel.getNightGameActions(),
                             killedPlayers = state.lastKilledPlayers,
                             clientChosen = state.lastClientPlayer,
