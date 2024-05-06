@@ -14,7 +14,7 @@ data class GamePlayerData(
     val isDeleted: Boolean = false,
     val isNewPlayer: Boolean = true,
     val actions: List<GameAction> = emptyList(),
-    val bestMove: List<Int>,
+    val bestMove: List<Int> = emptyList(),
 ) {
     companion object {
         const val EMPTY_ID = -1L

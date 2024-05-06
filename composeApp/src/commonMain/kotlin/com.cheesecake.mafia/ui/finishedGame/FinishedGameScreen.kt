@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.arkivanov.decompose.extensions.compose.jetbrains.subscribeAsState
 import com.cheesecake.mafia.common.BlackDark
 import com.cheesecake.mafia.common.imageResources
@@ -53,6 +55,7 @@ fun FinishedGameScreen(
     val result by viewModel.gameDataResult.collectAsState()
     val isDeleted by viewModel.isDeleted.collectAsState()
     var deleteDialogActive by remember { mutableStateOf(false) }
+    var captureDialogActive by remember { mutableStateOf(false) }
 
     LaunchedEffect(isDeleted) {
         if (isDeleted) {
@@ -89,6 +92,18 @@ fun FinishedGameScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
+                Button(
+                    onClick = { captureDialogActive = true },
+                    contentPadding = PaddingValues(2.dp),
+                    colors = ButtonDefaults.buttonColors(backgroundColor = BlackDark),
+                ) {
+                    Icon(
+                        painter = imageResources("ic_instagram.xml"),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
                 Button(
                     onClick = { deleteDialogActive = true },
                     contentPadding = PaddingValues(2.dp),
@@ -134,5 +149,11 @@ fun FinishedGameScreen(
             },
             onDismissRequest = { deleteDialogActive = false },
         )
+    }
+    if (captureDialogActive) {
+        val protocol = (result as ApiResult.Success<GameData>).data
+        Dialog(onDismissRequest = { captureDialogActive = false }) {
+            CaptureFinishedScreen(Modifier, protocol)
+        }
     }
 }

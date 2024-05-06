@@ -49,6 +49,17 @@ sealed class GamePlayerRole {
     }
 }
 
+fun GamePlayerRole.russianText() = when(this) {
+    is GamePlayerRole.Red.Civilian -> "Мирный"
+    is GamePlayerRole.Red.Sheriff -> "Шериф"
+    is GamePlayerRole.Red.Doctor -> "Доктор"
+    is GamePlayerRole.Red.Whore -> "Путана"
+    is GamePlayerRole.Black.Mafia -> "Мафия"
+    is GamePlayerRole.Black.Don -> "Дон"
+    is GamePlayerRole.White.Maniac -> "Маньяк"
+    else -> ""
+}
+
 fun roleValues() = listOf(
     GamePlayerRole.Red.Civilian,
     GamePlayerRole.Red.Sheriff,
