@@ -14,7 +14,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 object Games: Table("game") {
     val id = Games.long("id").uniqueIndex()
     private val title = Games.varchar("title", 20)
-    private val date = Games.varchar("date", 10)
+    val date = Games.varchar("date", 10)
     private val lastRound = Games.byte("lastRound")
     private val lastDayType = Games.varchar("lastDayType", 10)
     private val result = Games.varchar("result", 10)

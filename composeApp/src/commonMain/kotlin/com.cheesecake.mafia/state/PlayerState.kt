@@ -5,7 +5,10 @@ import com.cheesecake.mafia.common.Item
 
 @kotlinx.serialization.Serializable
 data class PlayerState(
-    val id: Long, val name: String
+    val id: Long,
+    val name: String,
+    val isPlayedToday: Boolean,
+    val priority: Int,
 )
 
 @kotlinx.serialization.Serializable

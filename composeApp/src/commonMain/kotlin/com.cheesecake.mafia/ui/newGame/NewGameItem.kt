@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -66,6 +67,9 @@ fun NewGameItem(
     availablePlayers: List<PlayerState> = emptyList(),
     onPlayerChoose: (PlayerState) -> Unit = {},
     onNewPlayerClicked: (name: String) -> Unit = {},
+    copiedPlayerToPast: PlayerState? = null,
+    onNumberClicked: (number: Int, player: PlayerState) -> Unit,
+    onExistPlayerCleaned: (SelectPlayerState) -> Unit = {},
     minPlayerNameLength: Int = 3,
     role: GamePlayerRole = GamePlayerRole.Red.Civilian,
     onRoleChanged: (GamePlayerRole) -> Unit = {},
@@ -78,7 +82,14 @@ fun NewGameItem(
     ) {
         Text(
             text = number.toString(),
-            modifier = Modifier.padding(vertical = 8.dp).weight(positionColumnWeight),
+            modifier = Modifier
+                .padding(vertical = 8.dp)
+                .weight(positionColumnWeight)
+                .clickable {
+                    copiedPlayerToPast?.let {
+                        onNumberClicked(number, it)
+                    }
+                },
             style = MaterialTheme.typography.body1,
             textAlign = TextAlign.Center,
         )
@@ -91,6 +102,7 @@ fun NewGameItem(
             availablePlayers = availablePlayers,
             onPlayerChoose = onPlayerChoose,
             onRoleChosen = onRoleChanged,
+            onExistPlayerCleaned = onExistPlayerCleaned,
             onNewPlayerClicked = onNewPlayerClicked,
             minPlayerNameLength = minPlayerNameLength,
         )
@@ -111,12 +123,13 @@ fun NewGamePlayer(
     modifier: Modifier = Modifier,
     player: SelectPlayerState,
     availablePlayers: List<PlayerState> = emptyList(),
+    onExistPlayerCleaned: (SelectPlayerState) -> Unit = {},
     onPlayerChoose: (PlayerState) -> Unit = {},
     onRoleChosen: (GamePlayerRole) -> Unit = {},
     onNewPlayerClicked: (String) -> Unit = {},
     minPlayerNameLength: Int = 3,
 ) {
-    var nameState by remember { mutableStateOf(TextFieldValue(player.name)) }
+    var nameState by remember(player.name) { mutableStateOf(TextFieldValue(player.name)) }
     var nameExpanded by remember { mutableStateOf(false) }
     val nameInteractionSource = remember { MutableInteractionSource() }
     val isNameFocused by nameInteractionSource.collectIsFocusedAsState()
@@ -125,11 +138,13 @@ fun NewGamePlayer(
     } else {
         listOf()
     }
-    val nameStatusText = when {
-        player is SelectPlayerState.New && nameState.text.length >= minPlayerNameLength -> "New"
-        player is SelectPlayerState.Exist -> "Exist"
-        nameState.text.isNotEmpty() -> "Error"
-        else -> ""
+    val nameStatusText by derivedStateOf {
+        when {
+            player is SelectPlayerState.New && nameState.text.length >= minPlayerNameLength -> "New"
+            player is SelectPlayerState.Exist -> "Exist"
+            nameState.text.isNotEmpty() -> "Error"
+            else -> ""
+        }
     }
     val color = if (player is SelectPlayerState.None) Red else Black
     val nameStatusColor = if (player == SelectPlayerState.None && nameState.text.isNotEmpty()) {
@@ -200,6 +215,17 @@ fun NewGamePlayer(
                     } else false
                 }
         )
+
+        if (player is SelectPlayerState.Exist) {
+            Text(
+                modifier = Modifier.wrapContentSize()
+                    .padding(8.dp)
+                    .clickable { onExistPlayerCleaned(player) },
+                text = "Clean",
+                style = MaterialTheme.typography.body2,
+                color = Black,
+            )
+        }
 
         Text(
             text = nameStatusText,

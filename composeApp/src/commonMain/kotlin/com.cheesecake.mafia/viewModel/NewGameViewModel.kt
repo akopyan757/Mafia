@@ -1,6 +1,5 @@
 package com.cheesecake.mafia.viewModel
 
-import com.cheesecake.mafia.data.PlayerData
 import com.cheesecake.mafia.repository.PlayerRepository
 import com.cheesecake.mafia.data.GamePlayerRole
 import com.cheesecake.mafia.data.InteractiveScreenState
@@ -13,12 +12,10 @@ import dev.icerock.moko.mvvm.viewmodel.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlin.random.Random
-import kotlin.random.nextUInt
 
 class NewGameViewModel(
     private val repository: PlayerRepository,
-    private val interactiveGameRepository: InteractiveGameRepository,
+    interactiveGameRepository: InteractiveGameRepository,
 ): ViewModel() {
 
     companion object {
@@ -31,7 +28,11 @@ class NewGameViewModel(
     init {
         interactiveGameRepository.saveState(InteractiveScreenState.Main)
         viewModelScope.launch {
-            val existPlayers = repository.selectAll().map { PlayerState(it.id, it.name) }
+            val existPlayers = repository.selectAll().map {
+                PlayerState(it.id, it.name, it.hasPlayedToday, it.gamesCount)
+            }.sortedWith(
+                compareByDescending<PlayerState> { it.isPlayedToday }.thenByDescending { it.priority }
+            )
             _state.value = NewGameState(
                 title = "Игра",
                 items = List(DEFAULT_GAME_COUNT) { index ->
@@ -95,8 +96,8 @@ class NewGameViewModel(
                     }
                     player.copy(player = playerState)
                 },
-            ).let {
-                it.copy(availablePlayers = it.getAvailablePlayers())
+            ).let { newState ->
+                newState.copy(availablePlayers = newState.getAvailablePlayers())
             }
         }
     }

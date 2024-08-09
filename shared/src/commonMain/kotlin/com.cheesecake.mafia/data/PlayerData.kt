@@ -6,4 +6,6 @@ import kotlinx.serialization.Serializable
 data class PlayerData(
     val id: Long = -1,
     val name: String,
+    val gamesCount: Int = 0,
+    val hasPlayedToday: Boolean = false,
 )

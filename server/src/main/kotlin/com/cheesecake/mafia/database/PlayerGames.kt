@@ -18,8 +18,8 @@ object PlayerGames: Table("playergame") {
 
     private const val SEPARATOR = ";"
 
-    private val playerId = PlayerGames.long("playerId").uniqueIndex().references(Players.id)
-    private val gameId = PlayerGames.long("gameId").uniqueIndex().references(Games.id)
+    val playerId = PlayerGames.long("playerId").uniqueIndex().references(Players.id)
+    val gameId = PlayerGames.long("gameId").uniqueIndex().references(Games.id)
     private val number = PlayerGames.byte("number")
     private val role = PlayerGames.varchar("role", 15)
     private val isWinner = PlayerGames.bool("isWinner")
