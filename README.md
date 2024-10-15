@@ -1,27 +1,34 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop, Server.
+# Mafia Game Host App (KMM)
 
-* `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - `commonMain` is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    `iosMain` would be the right folder for such calls.
+## Description
+The **Mafia Game Host App** is a Kotlin Multiplatform Mobile (KMM) project designed for managing Mafia game sessions. It helps the host track players, assign roles, and manage the various phases of the game. Currently, the app is designed to run on desktop platforms using shared KMM logic, with plans to extend support to Android and iOS in the future.
 
-* `/iosApp` contains iOS applications. Even if you’re sharing your UI with Compose Multiplatform, 
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+## Features
+- Manage player roles and track game phases
+- Assign random roles (Mafia, Civilians, Doctor, etc.)
+- Track eliminated players and game progress
+- Desktop support using KMM
 
-* `/server` is for the Ktor server application.
+## Technologies Used
+- **Kotlin Multiplatform Mobile (KMM)**: Shared logic for potential mobile and desktop platforms
+- **Coroutines**: For managing asynchronous tasks
+- **Koin**: For dependency injection
+- **Ktor**: For handling network requests
+- **SQLDelight**: For local database management
 
-* `/shared` is for the code that will be shared between all targets in the project.
-  The most important subfolder is `commonMain`. If preferred, you can add code to the platform-specific folders here too.
+## How to Build
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/akopyan757/Mafia.git
+    ```
+2. Open the project in IntelliJ IDEA or Android Studio with the KMM plugin installed.
+3. Sync the project and run it on the desktop.
 
+## Future Improvements
+- Add mobile support for Android and iOS platforms
+- Add more customizable game rules
+- Support for hosting online multiplayer sessions
+- Improve UI and animations for better user experience
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html),
-[Compose Multiplatform](https://github.com/JetBrains/compose-multiplatform/#compose-multiplatform),
-[Kotlin/Wasm](https://kotl.in/wasm/)…
-
-**Note:** Compose/Web is Experimental and may be changed at any time. Use it only for evaluation purposes.
-We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public Slack channel [#compose-web](https://slack-chats.kotlinlang.org/c/compose-web).
-If you face any issues, please report them on [GitHub](https://github.com/JetBrains/compose-multiplatform/issues).
-
-You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
+## Contributing
+Feel free to fork the repository and submit pull requests. Feedback and suggestions are welcome!
